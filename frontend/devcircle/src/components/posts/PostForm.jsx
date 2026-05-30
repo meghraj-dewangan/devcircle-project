@@ -7,59 +7,39 @@ import Avatar from '../shared/Avatar'
 
 const PostForm = () => {
   const dispatch = useDispatch()
-
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
 
   const [content, setContent] = useState('')
-
   const [image, setImage] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
-
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
   const [aiStatus, setAiStatus] = useState('')
 
-  const [suggestedTags, setSuggestedTags] = useState([])
-  const [selectedTags, setSelectedTags] = useState([])
-
-  const normalizeTag = (value) => value.toLowerCase().trim().replace(/^#/, '')
-
   const redirectGuestToLogin = () => {
     if (user) return false
     navigate('/login')
-
     return true
   }
 
-  const improvePostLocally = (value) => {
-    const cleaned = value.replace(/\s+/g, ' ').trim()
-    if (!cleaned) return ''
-    const first = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
-    return first.endsWith('.') ? first : `${first}.`
-  }
-
   const handleImageChange = (e) => {
-
     if (redirectGuestToLogin()) return
 
     const file = e.target.files[0]
+    if (!file) return
 
-    if (file) {
-      setImage(file)
-      setImagePreview(URL.createObjectURL(file))
-    }
+    setImage(file)
+    setImagePreview(URL.createObjectURL(file))
   }
 
   const removeImage = () => {
-
     setImage(null)
     setImagePreview('')
   }
 
-  const handleImproveWithAI = async () => {
-
+  const handleGeneratePost = async () => {
     if (redirectGuestToLogin()) return
     if (!content.trim()) return
 
@@ -68,90 +48,36 @@ const PostForm = () => {
     setAiStatus('')
 
     try {
-
       const { data } = await axiosfetch.post('/ai/improve-post', { content })
-      setContent(data.improved)
-
-      setAiStatus('Improved.')
-    } catch {
-      setContent(improvePostLocally(content))
-      setAiStatus('Improved.')
-
+      setContent(data.improved || content)
+      setAiStatus('Generated.')
       setAiError('')
-    } finally {
-      setAiLoading(false)
-    }
-  }
-
-  const handleSuggestTags = async () => {
-
-    if (redirectGuestToLogin()) return
-    if (!content.trim()) return
-    setAiLoading(true)
-    setAiError('')
-
-    setAiStatus('')
-
-    try {
-      const { data } = await axiosfetch.post('/ai/generate-tags', { content })
-
-      const tags = Array.isArray(data.tags) ? data.tags : []
-      if (tags.length > 0) {
-        setSuggestedTags(tags.map(normalizeTag).filter(Boolean).slice(0, 5))
-      } else {
-        setSuggestedTags([])
-      }
-      setAiStatus(tags.length > 0 ? 'Generated.' : '')
-    } catch {
-      setSuggestedTags([])
+    } catch (error) {
+      const message = error?.response?.data?.message || 'AI generation failed. Please try again.'
+      setAiError(message)
       setAiStatus('')
-      setAiError('')
     } finally {
-
       setAiLoading(false)
     }
-  }
-
-  const addSelectedTag = (tag) => {
-
-    const cleaned = normalizeTag(tag)
-    if (!cleaned) return
-
-    if (selectedTags.includes(cleaned)) return
-    if (selectedTags.length >= 5) return
-
-    setSelectedTags((prev) => [...prev, cleaned])
-  }
-
-  const removeSelectedTag = (tag) => {
-
-    setSelectedTags((prev) => prev.filter((t) => t !== tag))
   }
 
   const handleSubmit = async (e) => {
-
     e.preventDefault()
     if (redirectGuestToLogin()) return
-
     if (!content.trim()) return
 
     setLoading(true)
 
     const formData = new FormData()
-
     formData.append('content', content)
-    formData.append('tags', JSON.stringify(selectedTags))
-
     if (image) formData.append('image', image)
 
     const result = await dispatch(createPost(formData))
+
     if (createPost.fulfilled.match(result)) {
       setContent('')
       setImage(null)
-
       setImagePreview('')
-      setSuggestedTags([])
-      setSelectedTags([])
       setAiStatus('')
     }
 
@@ -160,7 +86,6 @@ const PostForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-4">
-
       {aiError && (
         <div className="mb-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-500 flex items-center justify-between">
           <span>{aiError}</span>
@@ -168,21 +93,18 @@ const PostForm = () => {
             <i className="fa-solid fa-xmark" />
           </button>
         </div>
-
       )}
-      {aiStatus && (
 
+      {aiStatus && (
         <p className="mb-2 text-xs text-blue-600">{aiStatus}</p>
       )}
 
       <div className="flex gap-3">
-
         <Avatar src={user?.avatar} username={user?.username} size="md" />
 
         <div className="flex-1">
           <textarea
             value={content}
-
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share something with the developer community..."
             rows={3}
@@ -190,71 +112,31 @@ const PostForm = () => {
             className="w-full text-sm text-gray-800 placeholder-gray-400 resize-none border-0 outline-none"
           />
 
-          {selectedTags.length > 0 && (
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              {selectedTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-
-                  onClick={() => removeSelectedTag(tag)}
-                  className="text-xs bg-blue-100 text-blue-700 border border-blue-200 px-2 py-1 rounded-full hover:bg-blue-200"
-                  title="Remove tag"
-
-                >
-                  #{tag} <span className="ml-1">x</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {suggestedTags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-
-              {suggestedTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => addSelectedTag(tag)}
-
-                  className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-full hover:bg-blue-100"
-                >
-                  #{tag}
-                </button>
-              ))}
-            </div>
-
-          )}
-
           {imagePreview && (
             <div className="relative mt-2 inline-block">
               <img
                 src={imagePreview}
-
                 alt="preview"
                 className="rounded-lg max-h-48 object-cover border border-gray-100"
               />
+
               <button
                 type="button"
                 onClick={removeImage}
                 className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hover:bg-opacity-70"
               >
                 <i className="fa-solid fa-xmark text-[10px]" />
-
               </button>
             </div>
           )}
 
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-
             <div className="flex items-center gap-1">
               <label
                 title="Add image"
                 className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
               >
                 <i className="fa-solid fa-image text-sm" />
-
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>
 
@@ -262,10 +144,9 @@ const PostForm = () => {
 
               <button
                 type="button"
-                onClick={handleImproveWithAI}
+                onClick={handleGeneratePost}
                 disabled={aiLoading || !content.trim()}
-
-                title="Improve with AI"
+                title="Generate post"
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-purple-600 hover:bg-purple-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {aiLoading ? (
@@ -273,31 +154,15 @@ const PostForm = () => {
                 ) : (
                   <i className="fa-solid fa-wand-magic-sparkles text-xs" />
                 )}
-                Improve
-
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSuggestTags}
-                disabled={aiLoading || !content.trim()}
-
-                title="Suggest tags"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-blue-600 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <i className="fa-solid fa-tags text-xs" />
-
-                Suggest tags
+                Generate
               </button>
             </div>
 
             <div className="flex items-center gap-2">
-
               <span className="text-xs text-gray-300">{content.length}/1000</span>
               <button
                 type="submit"
                 disabled={loading || !content.trim()}
-
                 className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Posting...' : 'Post'}

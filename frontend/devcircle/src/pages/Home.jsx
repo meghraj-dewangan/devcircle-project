@@ -1,12 +1,10 @@
 
-import { useDispatch } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import PostForm from '../components/posts/PostForm'
 import PostFeed from '../components/posts/PostFeed'
 
 const Home = () => {
 
-  const dispatch = useDispatch()
   const location = useLocation()
   const navigate = useNavigate()
 

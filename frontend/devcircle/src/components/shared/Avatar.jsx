@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 //  shows image if available, otherwise initial letter.
 const Avatar = ({ src, username, size = 'md' }) => {
@@ -11,7 +11,7 @@ const Avatar = ({ src, username, size = 'md' }) => {
     xl: 'w-20 h-20 text-xl',
   }
 
-  const [imageError, setImageError] = useState(false)
+  const [failedSrc, setFailedSrc] = useState('')
 
   const initial = username ? username[0].toUpperCase() : '?'
   const backendUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'
@@ -28,12 +28,7 @@ const Avatar = ({ src, username, size = 'md' }) => {
     return `${backendUrl}/uploads/${imagePath}`
   }
 
-  useEffect(() => {
-
-    setImageError(false)
-  }, [src])
-
-  const hasImage = src && !imageError
+  const hasImage = src && failedSrc !== src
 
   return (
 
@@ -44,7 +39,7 @@ const Avatar = ({ src, username, size = 'md' }) => {
           src={getAvatarSrc(src)}
           alt={username}
           className="w-full h-full object-cover"
-          onError={() => setImageError(true)}
+          onError={() => setFailedSrc(src)}
         />
 
       ) : (
@@ -62,4 +57,3 @@ const Avatar = ({ src, username, size = 'md' }) => {
 }
 
 export default Avatar
-

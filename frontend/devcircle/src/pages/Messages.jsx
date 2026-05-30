@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setActiveUser } from '../features/messages/messageSlice'
 import { getSocket } from '../services/socketServices'
 import ChatList from '../components/messages/ChatList'
@@ -10,7 +10,6 @@ import { ChatBox } from '../components/messages/ChatBox'
 const Messages = () => {
 
   const dispatch = useDispatch()
-  const { user } = useSelector((state) => state.auth)
 
   const [selectedUser, setSelectedUser] = useState(null)
   const [showList, setShowList] = useState(true) 
@@ -19,7 +18,7 @@ const Messages = () => {
   useEffect(() => {
 
     return () => { dispatch(setActiveUser(null)) }
-  }, [])
+  }, [dispatch])
 
   const handleSelectUser = (u) => {
     setSelectedUser(u)

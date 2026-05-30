@@ -25,7 +25,7 @@ const QuestionDetail = () => {
   const [answerBody, setAnswerBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const [questionVotes, setQuestionVotes] = useState({ upvotes: 0, downvotes: 0 })
+  const [changedVotes, setChangedVotes] = useState(null)
 
   // edit -delete state
   const [isEditing, setIsEditing] = useState(false)
@@ -42,19 +42,6 @@ const QuestionDetail = () => {
     api.get(`/questions/${id}/answers`).then(({ data }) => setAnswers(data))
 
   }, [dispatch, id])
-
-  useEffect(() => {
-    if (currentQuestion) {
-
-
-      setQuestionVotes({
-
-        upvotes: currentQuestion.upvotes || 0,
-        downvotes: currentQuestion.downvotes || 0,
-      })
-
-    }
-  }, [currentQuestion?._id, currentQuestion?.upvotes, currentQuestion?.downvotes])
 
   const isOwner = user && currentQuestion && user._id === currentQuestion.author?._id
 
@@ -149,7 +136,8 @@ const QuestionDetail = () => {
     if (!user) return
     try {
       const { data } = await api.post(`/questions/${id}/vote`, { voteType })
-      setQuestionVotes({
+      setChangedVotes({
+        questionId: currentQuestion?._id,
         upvotes: data.upvotes,
         downvotes: data.downvotes,
       })
@@ -165,6 +153,9 @@ const QuestionDetail = () => {
   if (!currentQuestion) return null
 
   const q = currentQuestion
+  const questionVotes = changedVotes?.questionId === q._id
+    ? changedVotes
+    : { upvotes: q.upvotes || 0, downvotes: q.downvotes || 0 }
 
   return (
 

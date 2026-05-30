@@ -14,8 +14,17 @@ const RightSidebar = () => {
 
         const list = Array.isArray(data)
           ? data
-            .map((item) => (typeof item === 'string' ? item : item?.tag))
-            .filter(Boolean)
+              .map((item) => {
+                if (typeof item === 'string') {
+                  return { tag: item, postCount: 0 }
+                }
+
+                return {
+                  tag: item?.tag,
+                  postCount: Number(item?.postCount) || 0,
+                }
+              })
+              .filter((item) => item.tag)
           : []
 
         setPopularTags(list)
@@ -40,11 +49,14 @@ const RightSidebar = () => {
           <div className="flex flex-wrap gap-2">
             {popularTags.slice(0, 8).map((tag) => (
               <Link
-                key={tag}
-                to={`/questions?tag=${encodeURIComponent(tag)}`}
-                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                key={tag.tag}
+                to={`/questions?tag=${encodeURIComponent(tag.tag)}`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-600 hover:bg-blue-50 hover:text-blue-600"
               >
-                #{tag}
+                <span>#{tag.tag}</span>
+                <span className="text-[10px] text-gray-400">
+                  {tag.postCount > 0 ? `${tag.postCount} posts` : '0 posts'}
+                </span>
               </Link>
             ))}
           </div>

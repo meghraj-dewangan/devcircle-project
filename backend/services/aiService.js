@@ -1,6 +1,16 @@
+import OpenAI from 'openai';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini';
+
+let openaiClient = null;
+
+const getClient = () => {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+
+  return openaiClient;
+};
 
 const normalizeText = (value = '') => value.replace(/\s+/g, ' ').trim();
 
@@ -17,9 +27,147 @@ const capitalizeSentence = (value = '') => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
+const postStopWords = new Set([
+  'about',
+  'after',
+  'again',
+  'also',
+  'an',
+  'and',
+  'any',
+  'are',
+  'as',
+  'at',
+  'be',
+  'been',
+  'before',
+  'being',
+  'but',
+  'by',
+  'can',
+  'could',
+  'did',
+  'do',
+  'does',
+  'doing',
+  'for',
+  'from',
+  'get',
+  'got',
+  'had',
+  'has',
+  'have',
+  'how',
+  'i',
+  'if',
+  'in',
+  'into',
+  'is',
+  'it',
+  'its',
+  'just',
+  'like',
+  'make',
+  'me',
+  'more',
+  'my',
+  'not',
+  'of',
+  'on',
+  'or',
+  'our',
+  'out',
+  'please',
+  'really',
+  'so',
+  'some',
+  'than',
+  'that',
+  'the',
+  'their',
+  'them',
+  'then',
+  'there',
+  'these',
+  'this',
+  'to',
+  'up',
+  'us',
+  'very',
+  'was',
+  'we',
+  'what',
+  'when',
+  'where',
+  'which',
+  'with',
+  'would',
+  'you',
+  'your',
+]);
+
+const getPostTopicWords = (value = '') =>
+  [...new Set(
+    normalizeText(value)
+      .match(/\b[a-z0-9][a-z0-9#+.-]*\b/gi)
+      ?.map((word) => word.toLowerCase())
+      .filter((word) => word.length > 2 && !postStopWords.has(word)) || []
+  )].slice(0, 6);
+
+const hasTopicAnchor = (source, output) => {
+  const topicWords = getPostTopicWords(source);
+  if (topicWords.length === 0) return true;
+
+  const text = normalizeText(output).toLowerCase();
+
+  return topicWords.some((word) => {
+    const safeWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const root = safeWord.endsWith('s') ? safeWord.slice(0, -1) : safeWord;
+    return new RegExp(`\\b${root}s?\\b`, 'i').test(text);
+  });
+};
+
+const hasBoilerplatePhrase = (text = '') => {
+  const lower = normalizeText(text).toLowerCase();
+  const phrases = [
+    'this update can help other developers understand the point quickly',
+    'share your thoughts if you have worked on something similar',
+    'share your thoughts or experience if you have worked on something similar',
+    'share your thoughts if you have worked on a similar thing',
+    'generated.',
+  ];
+
+  return phrases.some((phrase) => lower.includes(phrase));
+};
+
+const validateImprovedPost = (source, output) => {
+  const text = normalizeText(output);
+
+  if (!text) {
+    throw new Error('OpenAI returned empty response');
+  }
+
+  if (text.length < 20) {
+    throw new Error('OpenAI returned a short response');
+  }
+
+  if (text.length > 500) {
+    throw new Error('OpenAI returned an oversized response');
+  }
+
+  if (hasBoilerplatePhrase(text)) {
+    throw new Error('OpenAI returned boilerplate content');
+  }
+
+  if (!hasTopicAnchor(source, text)) {
+    throw new Error('OpenAI returned unrelated post');
+  }
+
+  return text;
+};
+
 const hasUsefulDetail = (value = '') => {
   const text = normalizeText(value).toLowerCase();
-
   return (
     text.includes('error') ||
     text.includes('expected') ||
@@ -34,18 +182,36 @@ const hasUsefulDetail = (value = '') => {
 };
 
 const improveQuestionLocally = (title, body) => {
-  const cleanTitle = normalizeText(title);
   const cleanBody = normalizeText(body);
-  const improvedTitle = 'How do I fix this issue?';
+  const cleanTitle = normalizeText(title);
 
+  const improvedTitle = cleanTitle ? capitalizeSentence(cleanTitle) : 'How do I fix this issue?';
   const improvedBody = cleanBody
     ? capitalizeSentence(cleanBody)
     : 'Please share the error message, what you expected, and what you already tried.';
 
-  return {
-    title: improvedTitle,
-    body: improvedBody,
-  };
+  return { title: improvedTitle, body: improvedBody };
+};
+
+const generateTagsLocally = (content) => {
+  const techWords = [
+    'javascript', 'python', 'react', 'node', 'express', 'mongodb', 'sql',
+    'html', 'css', 'typescript', 'api', 'rest', 'graphql', 'docker',
+    'git', 'linux', 'aws', 'firebase', 'nextjs', 'vue', 'angular',
+    'redux', 'jwt', 'auth', 'database', 'async', 'promise', 'fetch',
+    'axios', 'error', 'bug', 'deploy', 'server', 'frontend', 'backend',
+    'fullstack', 'mern', 'java', 'php', 'laravel', 'django', 'flask',
+  ];
+
+  const lower = content.toLowerCase();
+  const found = techWords.filter((word) => lower.includes(word));
+
+  if (found.length >= 2) return found.slice(0, 5);
+
+  const words = splitWords(content).filter((word) => word.length > 4);
+  const unique = [...new Set(words)].slice(0, 3);
+
+  return unique.length > 0 ? unique : ['general', 'question'];
 };
 
 const detectVagueLocally = (title, body) => {
@@ -63,151 +229,207 @@ const detectVagueLocally = (title, body) => {
   }
 
   if (cleanBody.length < 40 || bodyWords.length < 8) {
-    return {
-      isVague: true,
-      reason: 'Add more detail like the error and what you tried.',
-    };
+    return { isVague: true, reason: 'Add more detail like the error and what you tried.' };
   }
 
   if (!hasUsefulDetail(cleanBody)) {
-    return {
-      isVague: true,
-      reason: 'Mention the error message, expected result, or what you tried.',
-    };
+    return { isVague: true, reason: 'Mention the error message, expected result, or what you tried.' };
   }
 
   return { isVague: false, reason: '' };
 };
 
-
-const callGroq = async(prompt)=>{
-    if(!process.env.GROQ_API_KEY){
-         throw new Error('GROQ_API_KEY is missing in backend .env');
-    }
-
-    const response = await fetch( GROQ_API_URL,{
-        method:'POST',
-        headers:{
-             Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
-    }),
-    });
-
-     if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Groq API error ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content?.trim();
-
-  if (!text){
-    throw new Error('Groq API empty response');
-  }
-  return text;
-
-
+const isPlaceholderRewrite = (text = '') => {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes('[your') ||
+    lower.includes('[insert') ||
+    lower.includes('[add') ||
+    lower.includes('placeholder')
+  );
 };
 
-const parseJsonFromModel = (text)=>{
-    let cleaned = text.trim();
+const callOpenAI = async (input, instructions = '') => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is missing in backend .env');
+  }
 
-    if(cleaned.startsWith('```json')){
-        cleaned = cleaned.slice(7).trim();
-    }
+  const response = await getClient().responses.create({
+    model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
+    instructions,
+    input,
+    max_output_tokens: 500,
+    store: false,
+  });
 
-    if (cleaned.startsWith('```')) {
+  const text = normalizeText(response.output_text || '');
+
+  if (!text) {
+    throw new Error('OpenAI returned empty response');
+  }
+
+  return text;
+};
+
+const parseJsonFromModel = (text) => {
+  let cleaned = text.trim();
+
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7).trim();
+  }
+  if (cleaned.startsWith('```')) {
     cleaned = cleaned.slice(3).trim();
   }
   if (cleaned.endsWith('```')) {
     cleaned = cleaned.slice(0, -3).trim();
   }
 
-   try {
+  try {
     return JSON.parse(cleaned);
-   } catch {
+  } catch {
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) {
-      return JSON.parse(match[0]);
-    }
+    if (match) return JSON.parse(match[0]);
     throw new Error('Unable to parse model response');
-   }
-
+  }
 };
 
-// improve a post to more clear
+const buildPostPrompt = (content, strict = false) => {
+  const topicWords = getPostTopicWords(content);
+  const topicLine = topicWords.length
+    ? `Preserve these exact topic terms when they matter: ${topicWords.join(', ')}.`
+    : 'Keep the rewrite centered on the same topic.';
 
-const improvePost = async(content)=>{
-    const prompt = `Improve this developer post. Keep it short and clear.
-Return only final improved text.
-Post: ${content}`;
-return callGroq(prompt);
+  return `Rewrite the draft into a clean natural post for a developer community.
+Rules:
+- Keep the same topic and meaning.
+- Do not invent facts, brands, names, numbers, or outcomes.
+- Do not replace a real term with an unrelated one.
+- Use simple natural English.
+- Write 2 or 3 short sentences.
+- No heading, no bullets, no markdown, no intro, and no closing line.
+- Return only JSON that matches the schema.
+${strict ? '- Do not use boilerplate lines like "This update can help..." or "Share your thoughts...".' : ''}
+${topicLine}
+
+Draft: ${content}`;
 };
 
-//improve question title and body
+const requestImprovedPost = async (content, strict = false) => {
+  const response = await getClient().responses.create({
+    model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
+    instructions: 'You rewrite short drafts into natural posts. Stay on topic and do not invent facts.',
+    input: buildPostPrompt(content, strict),
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'improved_post',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            post: { type: 'string' },
+          },
+          required: ['post'],
+        },
+      },
+    },
+    temperature: 0.2,
+    max_output_tokens: 220,
+    store: false,
+  });
+
+  const parsed = parseJsonFromModel(response.output_text || '');
+  return validateImprovedPost(content, parsed?.post || '');
+};
+
+const improvePost = async (content) => {
+  try {
+    return await requestImprovedPost(content, false);
+  } catch (firstError) {
+    try {
+      return await requestImprovedPost(content, true);
+    } catch (secondError) {
+      throw secondError || firstError;
+    }
+  }
+};
 
 const improveQuestion = async (title, body) => {
   const fallback = improveQuestionLocally(title, body);
-  const prompt = `Rewrite this technical question in simple clear English.
-Keep the same meaning.
-Do not add new facts.
-If the question is vague, keep it short and ask for the missing detail.
-Return valid JSON only with fields: "title", "body".
-Title: ${title}
-Body: ${body}`;
-
-  const text = await callGroq(prompt);
 
   try {
-    const parsed = parseJsonFromModel(text);
+    const response = await getClient().responses.create({
+      model: process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
+      instructions: 'Rewrite technical questions in simple clear English. Fix grammar and spelling. Keep the title and body focused on the same issue. Do not invent new facts.',
+      input: `Title: ${title}\nBody: ${body}`,
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'improved_question',
+          strict: true,
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              title: { type: 'string' },
+              body: { type: 'string' },
+            },
+            required: ['title', 'body'],
+          },
+        },
+      },
+      max_output_tokens: 350,
+      store: false,
+    });
+
+    const parsed = parseJsonFromModel(response.output_text || '');
     const titleText = normalizeText(parsed?.title || '');
     const bodyText = normalizeText(parsed?.body || '');
 
-    if (!isPlaceholderRewrite(titleText) && !isPlaceholderRewrite(bodyText)) {
-      return {
-        title: titleText,
-        body: bodyText,
-      };
+    if (titleText && bodyText && !isPlaceholderRewrite(titleText) && !isPlaceholderRewrite(bodyText)) {
+      return { title: titleText, body: bodyText };
     }
   } catch {
-    // Fall back to a simple local rewrite when the model output is not usable.
+    // use local fallback
   }
 
   return fallback;
 };
 
-// generate tags for post and questions
-
 const generateTags = async (content) => {
-  const prompt = `Generate 3 to 5 technical tags for this content.
+  const instructions = 'Generate short technical tags.';
+  const input = `Generate 3 to 5 technical tags for this content.
 Return only comma-separated lowercase tags.
+
 Content: ${content}`;
 
-  const text = await callGroq(prompt);
+  try {
+    const text = await callOpenAI(input, instructions);
+    const tags = text
+      .split(',')
+      .map((tag) => tag.trim().toLowerCase())
+      .filter((tag) => tag.length > 0 && tag.length < 30);
 
-  return text
-    .split(',')
-    .map((tag) => tag.trim().toLowerCase())
-    .filter((tag) => tag.length > 0);
+    if (tags.length > 0) return tags;
+  } catch {
+    // use local keyword extraction
+  }
+
+  return generateTagsLocally(content);
 };
 
-//check for question is too vague or unclear
-
 const detectVagueQuestion = async (title, body) => {
-  const prompt = `Check if this technical question is vague.
+  const instructions = 'Check technical question quality.';
+  const input = `Check if this technical question is vague.
 Return valid JSON only with: "isVague" (boolean), "reason" (string).
 Be strict but simple.
+
 Title: ${title}
 Body: ${body}`;
 
-  const text = await callGroq(prompt);
-
   try {
+    const text = await callOpenAI(input, instructions);
     const parsed = parseJsonFromModel(text);
     const localResult = detectVagueLocally(title, body);
 
@@ -222,23 +444,25 @@ Body: ${body}`;
       return localResult.isVague ? localResult : { isVague: false, reason: '' };
     }
   } catch {
-    // Fall back to local checks if the model response is malformed.
+    // fall back to local checks
   }
 
   return detectVagueLocally(title, body);
 };
 
-// suggest an answer to a developer question
-
 const suggestAnswer = async (title, body) => {
-  const prompt = `Answer this technical question in simple plain text.
-Keep it clear and concise (max 400 words).
+  const instructions = 'Answer technical questions in simple plain text.';
+  const input = `Keep it clear and concise, max 400 words.
+
 Question Title: ${title}
 Question Details: ${body}`;
 
-  return callGroq(prompt);
+  try {
+    return await callOpenAI(input, instructions);
+  } catch {
+    return 'Unable to generate a suggestion right now. Please try again later.';
+  }
 };
-
 
 export {
   improvePost,
@@ -247,4 +471,3 @@ export {
   detectVagueQuestion,
   suggestAnswer,
 };
-

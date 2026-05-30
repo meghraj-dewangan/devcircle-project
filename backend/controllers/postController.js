@@ -3,7 +3,7 @@ import Post from '../models/Post.js';
 import Follow from '../models/Follow.js';
 import Counter from '../models/Counter.js';
 
-const findPostByRef = async (postRef, withAuthor = false) => {
+const findPostByRef = (postRef, withAuthor = false) => {
   const isNumberRef = /^\d+$/.test(postRef);
 
   if (isNumberRef) {

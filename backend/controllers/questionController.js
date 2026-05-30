@@ -6,18 +6,25 @@ import Vote from '../models/Vote.js';
 const getPopularTags = async (req, res) => {
   try {
     const tags = await Question.aggregate([
-
       { $unwind: '$tags' },
-      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: '$tags',
+          count: { $sum: 1 },
+        },
+      },
       { $sort: { count: -1 } },
       { $limit: 15 },
-      { $project: { _id: 0, tag: '$_id', count: 1 } },
-
+      {
+        $project: {
+          _id: 0,
+          tag: '$_id',
+          postCount: '$count',
+        },
+      },
     ]);
     res.json(tags);
-
   } catch (error) {
-
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -224,4 +231,3 @@ const voteQuestion = async (req, res) => {
 };
 
 export { getPopularTags, getQuestions, createQuestion, getQuestionById, updateQuestion, deleteQuestion, voteQuestion };
-

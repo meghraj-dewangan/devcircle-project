@@ -8,11 +8,22 @@ const getAiError=(error)=>{
   }
 
   if (message.includes('401') || message.toLowerCase().includes('api key')) {
-    return { status: 401, message: 'Invalid Groq API key. Please check backend .env.' };
+    return { status: 401, message: 'Invalid OpenAI API key. Please check backend .env.' };
   }
 
   if (message.includes('not found') || message.includes('not supported')) {
     return { status: 400, message: 'Selected AI model is not available for this key.' };
+  }
+
+  if (
+    message.includes('empty response') ||
+    message.includes('short response') ||
+    message.includes('oversized response') ||
+    message.includes('boilerplate content') ||
+    message.includes('unrelated post') ||
+    message.includes('Unable to parse model response')
+  ) {
+    return { status: 502, message: 'AI returned an invalid draft. Please try again.' };
   }
 
   return { status: 500, message: 'AI service error. Please try again.' };
@@ -106,4 +117,3 @@ const suggestAnswer = async (req, res) => {
 };
 
 export { improvePost, improveQuestion, generateTags, detectVague, suggestAnswer };
-
