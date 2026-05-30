@@ -17,72 +17,29 @@ const capitalizeSentence = (value = '') => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
-const placeholderRewrites = new Set([
-  'string',
-  'title',
-  'body',
-  'text',
-  'json',
-  'null',
-  'undefined',
-]);
-
-const isPlaceholderRewrite = (value) => {
-  const text = normalizeText(value).toLowerCase();
-
-  if (!text) return true;
-  if (placeholderRewrites.has(text)) return true;
-  if (text.length < 8) return true;
-
-  return false;
-};
-
-const topicKeywords = [
-  'react',
-  'node',
-  'nodejs',
-  'express',
-  'mongodb',
-  'mongoose',
-  'jwt',
-  'api',
-  'axios',
-  'vite',
-  'redux',
-  'socket',
-  'upload',
-  'auth',
-  'login',
-  'profile',
-  'post',
-  'question',
-  'frontend',
-  'backend',
-];
-
-const genericQuestionWords = new Set([
-  'help',
-  'issue',
-  'problem',
-  'error',
-  'question',
-  'fix',
-  'urgent',
-  'pls',
-  'please',
-  'need',
-  'how',
-  'why',
-]);
+const topicKeywords = ['react', 'nodejs', 'node', 'express', 'mongodb', 'jwt', 'api', 'redux', 'vite', 'socket', 'login', 'auth', 'frontend', 'backend', 'laravel', 'php', 'java', 'python'];
 
 const extractTopic = (title, body) => {
   const words = splitWords(`${title} ${body}`);
+  const found = words.find((word) => topicKeywords.includes(word));
+  if (!found) return '';
+  return found === 'node' ? 'nodejs' : found;
+};
 
-  const keyword = words.find((word) => topicKeywords.includes(word));
-  if (keyword) return keyword;
+const hasUsefulDetail = (value = '') => {
+  const text = normalizeText(value).toLowerCase();
 
-  const usefulWord = words.find((word) => word.length > 3 && !genericQuestionWords.has(word));
-  return usefulWord || '';
+  return (
+    text.includes('error') ||
+    text.includes('expected') ||
+    text.includes('tried') ||
+    text.includes('version') ||
+    text.includes('stack') ||
+    text.includes('trace') ||
+    text.includes('code') ||
+    text.includes('```') ||
+    /\d/.test(text)
+  );
 };
 
 const improveQuestionLocally = (title, body) => {
@@ -90,9 +47,7 @@ const improveQuestionLocally = (title, body) => {
   const cleanBody = normalizeText(body);
   const topic = extractTopic(cleanTitle, cleanBody);
 
-  const improvedTitle = topic
-    ? `How do I fix this ${topic} issue?`
-    : 'How do I fix this issue?';
+  const improvedTitle = topic ? `How do I fix this ${topic} issue?` : 'How do I fix this issue?';
 
   const improvedBody = cleanBody
     ? capitalizeSentence(cleanBody)
@@ -109,53 +64,26 @@ const detectVagueLocally = (title, body) => {
   const cleanBody = normalizeText(body);
   const titleWords = splitWords(cleanTitle);
   const bodyWords = splitWords(cleanBody);
-  const topic = extractTopic(cleanTitle, cleanBody);
 
   if (!cleanTitle || !cleanBody) {
-    return { isVague: true, reason: 'Add both a clear title and description.' };
+    return { isVague: true, reason: 'Add both a title and a description.' };
   }
 
   if (cleanTitle.length < 12 || titleWords.length < 3) {
-    return { isVague: true, reason: 'Title is too short. Make it more specific.' };
+    return { isVague: true, reason: 'Make the title a little more specific.' };
   }
 
-  if (!topic && titleWords.some((word) => genericQuestionWords.has(word))) {
-    return { isVague: true, reason: 'Add the exact technology or error in the title.' };
-  }
-
-  if (cleanBody.length < 40 || bodyWords.length < 10) {
+  if (cleanBody.length < 40 || bodyWords.length < 8) {
     return {
       isVague: true,
-      reason: 'Add more detail: error, expected result, and what you tried.',
+      reason: 'Add more detail like the error and what you tried.',
     };
   }
 
-  const detailSignals = [
-    'error',
-    'expected',
-    'actual',
-    'stack',
-    'trace',
-    'steps',
-    'tried',
-    'version',
-    'code',
-    'react',
-    'node',
-    'api',
-    'login',
-    'mongo',
-    'jwt',
-  ];
-
-  const hasDetail = detailSignals.some((word) => cleanBody.toLowerCase().includes(word))
-    || cleanBody.includes('```')
-    || /\d/.test(cleanBody);
-
-  if (!hasDetail) {
+  if (!hasUsefulDetail(cleanBody)) {
     return {
       isVague: true,
-      reason: 'Add the error message and what you already tried.',
+      reason: 'Mention the error message, expected result, or what you tried.',
     };
   }
 
@@ -169,7 +97,7 @@ const callGroq = async(prompt)=>{
     }
 
     const response = await fetch( GROQ_API_URL,{
-        method:'post',
+        method:'POST',
         headers:{
              Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       'Content-Type': 'application/json',
@@ -177,7 +105,7 @@ const callGroq = async(prompt)=>{
         body: JSON.stringify({
       model: GROQ_MODEL,
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
+      temperature: 0.2,
     }),
     });
 
@@ -236,7 +164,10 @@ return callGroq(prompt);
 
 const improveQuestion = async (title, body) => {
   const fallback = improveQuestionLocally(title, body);
-  const prompt = `Rewrite this technical question to be clearer.
+  const prompt = `Rewrite this technical question in simple clear English.
+Keep the same meaning.
+Do not add new facts.
+If the question is vague, keep it short and ask for the missing detail.
 Return valid JSON only with fields: "title", "body".
 Title: ${title}
 Body: ${body}`;
@@ -281,6 +212,7 @@ Content: ${content}`;
 const detectVagueQuestion = async (title, body) => {
   const prompt = `Check if this technical question is vague.
 Return valid JSON only with: "isVague" (boolean), "reason" (string).
+Be strict but simple.
 Title: ${title}
 Body: ${body}`;
 

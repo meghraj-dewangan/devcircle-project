@@ -23,7 +23,6 @@ const QuestionForm = () => {
   const [aiStatus, setAiStatus] = useState('')
 
   const [vagueWarning, setVagueWarning] = useState('')
-  const [, setClarityChecking] = useState(false)
 
   const cleanText = (text) => {
     const trimmed = text.replace(/\s+/g, ' ').trim()
@@ -100,20 +99,26 @@ const QuestionForm = () => {
   }
 
   const localVagueCheck = (questionTitle, questionBody) => {
-
     const t = questionTitle.trim()
     const b = questionBody.trim()
 
-    const combinedWords = `${t} ${b}`.split(/\s+/).filter(Boolean)
-
     if (t.length < 8) {
-      return { isVague: true, reason: 'Title is too short. Add a more specific title.' }
-
+      return { isVague: true, reason: 'Title is too short. Make it a bit more specific.' }
     }
 
-    if (b.length < 30 || combinedWords.length < 12) {
+    if (b.length < 40) {
+      return { isVague: true, reason: 'Add a little more detail to the description.' }
+    }
 
-      return { isVague: true, reason: 'Please add more details: context, expected result, and actual error.' }
+    const lower = b.toLowerCase()
+    if (
+      !lower.includes('error') &&
+      !lower.includes('expected') &&
+      !lower.includes('tried') &&
+      !lower.includes('version') &&
+      !lower.includes('code')
+    ) {
+      return { isVague: true, reason: 'Mention the error message or what you already tried.' }
     }
 
     return { isVague: false, reason: '' }
@@ -169,12 +174,9 @@ const QuestionForm = () => {
   }
 
   const checkVagueQuestion = async () => {
-
     if (!title.trim() || !body.trim()) return { isVague: false, reason: '' }
 
-    setClarityChecking(true)
     try {
-
       const { data } = await axiosfetch.post('/ai/detect-vague', { title, body })
 
       if (data?.isVague) {
@@ -201,10 +203,7 @@ const QuestionForm = () => {
 
       return localResult
 
-    } finally {
-      setClarityChecking(false)
     }
-
   }
 
   const handleSubmit = async (e) => {
@@ -310,7 +309,6 @@ const QuestionForm = () => {
       </div>
 
       {vagueWarning && (
-
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
           <i className="fa-solid fa-triangle-exclamation mr-1" />
           This question may be unclear: {vagueWarning}
