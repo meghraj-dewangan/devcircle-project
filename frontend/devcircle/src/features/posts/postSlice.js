@@ -171,8 +171,10 @@ const postSlice = createSlice({
 
       })
       .addCase(repostPost.fulfilled, (state, action) => {
-
-        state.posts = [action.payload, ...state.posts]
+        const exists = state.posts.some((p) => p._id === action.payload._id)
+        if (!exists) {
+          state.posts = [action.payload, ...state.posts]
+        }
       })
       .addCase(deletePost.fulfilled, (state, action) => {
         state.posts = state.posts.filter((p) => p._id !== action.payload)

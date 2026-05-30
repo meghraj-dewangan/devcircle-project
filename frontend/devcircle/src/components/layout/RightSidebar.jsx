@@ -2,36 +2,54 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axiosfetch from '../../api/axios'
 
-const FALLBACK_TAGS = ['react', 'nodejs', 'mongodb', 'javascript', 'python', 'css', 'express', 'git']
-
 const RightSidebar = () => {
-  const [popularTags, setPopularTags] = useState(FALLBACK_TAGS.map((t) => ({ tag: t })))
+  const [popularTags, setPopularTags] = useState([])
 
   useEffect(() => {
+    let alive = true
+
     axiosfetch.get('/questions/tags')
       .then(({ data }) => {
-        if (data && data.length > 0) setPopularTags(data)
+        if (!alive) return
+
+        const list = Array.isArray(data)
+          ? data
+            .map((item) => (typeof item === 'string' ? item : item?.tag))
+            .filter(Boolean)
+          : []
+
+        setPopularTags(list)
       })
-      .catch(() => {/* use fallback */})
+      .catch(() => {
+        if (!alive) return
+
+        setPopularTags([])
+      })
+
+    return () => {
+      alive = false
+    }
   }, [])
 
   return (
     <aside className="hidden xl:block w-60 sticky top-16 h-fit">
       {/* Popular Tags */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Popular Tags</h3>
-        <div className="flex flex-wrap gap-2">
-          {popularTags.map(({ tag }) => (
-            <Link
-              key={tag}
-              to={`/questions?tag=${tag}`}
-              className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-blue-50 hover:text-blue-600"
-            >
-              #{tag}
-            </Link>
-          ))}
+      {popularTags.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Popular Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {popularTags.slice(0, 8).map((tag) => (
+              <Link
+                key={tag}
+                to={`/questions?tag=${encodeURIComponent(tag)}`}
+                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full hover:bg-blue-50 hover:text-blue-600"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Quick links */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -48,4 +66,3 @@ const RightSidebar = () => {
 }
 
 export default RightSidebar
-

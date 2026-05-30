@@ -43,7 +43,7 @@ const Search = () => {
       const { data } = await axiosfetch.get(`/follow/status-bulk?ids=${ids}`)
       setFollowMap((prev) => ({ ...prev, ...data }))
     } catch {
-      
+      return
     }
   }
 
@@ -82,6 +82,7 @@ const Search = () => {
       if (latestRequestRef.current !== requestId) return
 
       setResults({ users: [], posts: [], questions: [] })
+      return
     } finally {
       if (latestRequestRef.current === requestId) {
         setLoading(false)
@@ -143,8 +144,7 @@ const Search = () => {
       }
 
     } catch {
-
-      
+      return
     } finally {
       setFollowLoading((prev) => ({ ...prev, [userId]: false }))
     }
@@ -264,9 +264,16 @@ const Search = () => {
                     key={p._id}
                     className="bg-white border border-gray-200 rounded-xl p-3 hover:bg-gray-50 flex gap-3 items-start"
                   >
-                    <Avatar src={p.author?.avatar} username={p.author?.username} size="sm" />
+                    <Link to={`/profile/${p.author?.username}`} className="shrink-0">
+                      <Avatar src={p.author?.avatar} username={p.author?.username} size="sm" />
+                    </Link>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-800 mb-1">{p.author?.username}</p>
+                      <Link
+                        to={`/profile/${p.author?.username}`}
+                        className="text-xs font-medium text-gray-800 mb-1 inline-block hover:text-blue-600"
+                      >
+                        {p.author?.username}
+                      </Link>
                       <p className="text-sm text-gray-700 line-clamp-2">{p.content}</p>
                       {p.image && (
                         <img

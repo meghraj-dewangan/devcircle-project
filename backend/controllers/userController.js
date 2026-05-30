@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Follow from '../models/Follow.js';
+import Post from '../models/Post.js';
 
 // view anyone public profile
 const getUserProfile = async (req, res) => {
@@ -13,7 +14,20 @@ const getUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    const posts = await Post.find({ author: user._id })
+      .populate('author', 'username avatar')
+      .populate({
+        path: 'repostOf',
+        select: 'content image postNumber createdAt author',
+        populate: { path: 'author', select: 'username avatar' },
+      })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({
+      ...user.toObject(),
+      posts,
+    });
 
   } catch (error) {
 
@@ -107,4 +121,3 @@ export {
   getFollowers,
   getFollowing,
 };
-

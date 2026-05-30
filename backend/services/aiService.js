@@ -17,15 +17,6 @@ const capitalizeSentence = (value = '') => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
-const topicKeywords = ['react', 'nodejs', 'node', 'express', 'mongodb', 'jwt', 'api', 'redux', 'vite', 'socket', 'login', 'auth', 'frontend', 'backend', 'laravel', 'php', 'java', 'python'];
-
-const extractTopic = (title, body) => {
-  const words = splitWords(`${title} ${body}`);
-  const found = words.find((word) => topicKeywords.includes(word));
-  if (!found) return '';
-  return found === 'node' ? 'nodejs' : found;
-};
-
 const hasUsefulDetail = (value = '') => {
   const text = normalizeText(value).toLowerCase();
 
@@ -45,9 +36,7 @@ const hasUsefulDetail = (value = '') => {
 const improveQuestionLocally = (title, body) => {
   const cleanTitle = normalizeText(title);
   const cleanBody = normalizeText(body);
-  const topic = extractTopic(cleanTitle, cleanBody);
-
-  const improvedTitle = topic ? `How do I fix this ${topic} issue?` : 'How do I fix this issue?';
+  const improvedTitle = 'How do I fix this issue?';
 
   const improvedBody = cleanBody
     ? capitalizeSentence(cleanBody)

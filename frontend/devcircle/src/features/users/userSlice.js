@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import axiosfetch from '../../api/axios'
+import { createPost, deletePost, repostPost } from '../posts/postSlice'
 
 export const fetchUserProfile = createAsyncThunk(
 
@@ -127,6 +128,19 @@ const userSlice = createSlice({
         if (state.profile) state.profile.avatar = action.payload.avatar
 
       })
+      .addCase(createPost.fulfilled, (state, action) => {
+        if (state.profile && state.profile._id === action.payload.author?._id) {
+          state.profile.posts = [action.payload, ...(state.profile.posts || [])]
+        }
+      })
+      .addCase(repostPost.fulfilled, (state, action) => {
+        if (state.profile && state.profile._id === action.payload.author?._id) {
+          const exists = state.profile.posts?.some((post) => post._id === action.payload._id)
+          if (!exists) {
+            state.profile.posts = [action.payload, ...(state.profile.posts || [])]
+          }
+        }
+      })
       .addCase(checkFollowStatus.fulfilled, (state, action) => {
         state.isFollowing = action.payload
 
@@ -142,6 +156,11 @@ const userSlice = createSlice({
         if (state.profile)
           state.profile.followerCount = Math.max(0, state.profile.followerCount - 1)
 
+      })
+      .addCase(deletePost.fulfilled, (state, action) => {
+        if (!state.profile?.posts?.length) return
+
+        state.profile.posts = state.profile.posts.filter((post) => post._id !== action.payload)
       })
       
   },

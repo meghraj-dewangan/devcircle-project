@@ -189,10 +189,11 @@ const repostPost = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const originalId = sourcePost.repostOf || sourcePost._id;
-    const originalPost = await Post.findById(originalId);
-    if (!originalPost) {
-      return res.status(404).json({ message: 'Original post not found' });
+    let originalPost = sourcePost;
+
+    if (sourcePost.repostOf) {
+      const foundPost = await Post.findById(sourcePost.repostOf);
+      if (foundPost) originalPost = foundPost;
     }
 
     const existingRepost = await Post.findOne({
@@ -201,7 +202,15 @@ const repostPost = async (req, res) => {
     });
 
     if (existingRepost) {
-      return res.status(400).json({ message: 'You already reposted this post' });
+      const populatedExisting = await Post.findById(existingRepost._id)
+        .populate('author', 'username avatar')
+        .populate({
+          path: 'repostOf',
+          select: 'content image postNumber createdAt author',
+          populate: { path: 'author', select: 'username avatar' },
+        });
+
+      return res.json(populatedExisting);
     }
 
     const counter = await Counter.findOneAndUpdate(
@@ -247,6 +256,12 @@ const deletePost = async (req, res) => {
 
     if (post.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'You can only delete your own posts' });
+    }
+
+    if (post.repostOf) {
+      await Post.findByIdAndUpdate(post.repostOf, {
+        $inc: { repostCount: -1 },
+      });
     }
 
     await post.deleteOne();
@@ -316,4 +331,3 @@ export {
   likePost,
   unlikePost,
 };
-

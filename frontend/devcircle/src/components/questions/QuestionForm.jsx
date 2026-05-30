@@ -63,41 +63,6 @@ const QuestionForm = () => {
     return cleaned.endsWith('.') ? cleaned : `${cleaned}.`
   }
 
-  const generateBasicTags = (text) => {
-    const lower = text.toLowerCase()
-
-    const hintTags = []
-    if (lower.includes('mern')) hintTags.push('mern', 'mongodb', 'express', 'react', 'nodejs')
-    if (lower.includes('react')) hintTags.push('react')
-
-    if (lower.includes('node')) hintTags.push('nodejs')
-    if (lower.includes('express')) hintTags.push('express')
-
-    if (lower.includes('mongo')) hintTags.push('mongodb')
-    if (lower.includes('javascript') || lower.includes(' js ')) hintTags.push('javascript')
-    if (lower.includes('typescript') || lower.includes(' ts ')) hintTags.push('typescript')
-
-    if (lower.includes('api')) hintTags.push('api')
-
-    const stopWords = [
-      'this', 'that', 'with', 'from', 'have', 'what', 'when', 'where', 'why', 'how',
-      'your', 'you', 'into', 'about', 'there', 'their', 'would', 'could', 'should',
-      'error', 'issue', 'help', 'need', 'using', 'used', 'also', 'just', 'does',
-      'will', 'been', 'than', 'then', 'them', 'they', 'and', 'for', 'the', 'are',
-      'not', 'but', 'can', 'any', 'all', 'was', 'were', 'has', 'had', 'did', 'its',
-      'http', 'https', 'www', 'com'
-    ]
-
-    const words = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(' ')
-      .filter((w) => w.length > 2 && !stopWords.includes(w))
-
-    const unique = [...new Set([...hintTags, ...words])]
-    return unique.slice(0, 5)
-  }
-
   const localVagueCheck = (questionTitle, questionBody) => {
     const t = questionTitle.trim()
     const b = questionBody.trim()
@@ -160,14 +125,10 @@ const QuestionForm = () => {
 
         setAiStatus('Generated.')
       } else {
-        const fallback = generateBasicTags(`${title} ${body}`)
-        setTags(fallback.join(', '))
-        setAiStatus('Generated.')
+        setAiStatus('')
       }
     } catch {
-      const fallback = generateBasicTags(`${title} ${body}`)
-      setTags(fallback.join(', '))
-      setAiStatus('Generated.')
+      setAiStatus('')
     } finally {
       setAiLoading(false)
     }
@@ -301,7 +262,7 @@ const QuestionForm = () => {
             setTags(e.target.value)
             if (aiStatus) setAiStatus('')
           }}
-          placeholder="react, nodejs, mongodb"
+          placeholder="Add tags separated by commas"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
         />
         <p className="text-xs text-gray-400 mt-1">Comma separated</p>

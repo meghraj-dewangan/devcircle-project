@@ -29,6 +29,7 @@ const PostCard = ({ post, onDelete }) => {
   const [likeCount, setLikeCount] = useState(post.likeCount || 0)
 
   const [repostStatus, setRepostStatus] = useState('')
+  const [reposting, setReposting] = useState(false)
 
   const handleLike = () => {
     if (!user) return
@@ -48,11 +49,13 @@ const PostCard = ({ post, onDelete }) => {
 
   const handleRepost = async () => {
 
-    if (!user) return
+    if (!user || reposting) return
 
     const sourceId = post.repostOf?._id || post._id
 
+    setReposting(true)
     const result = await dispatch(repostPost(sourceId))
+    setReposting(false)
 
     if (repostPost.fulfilled.match(result)) {
 
@@ -179,6 +182,7 @@ const PostCard = ({ post, onDelete }) => {
         {/* Repost */}
         <button
           onClick={handleRepost}
+          disabled={reposting}
 
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ml-auto ${
             repostStatus === 'done'
@@ -191,7 +195,7 @@ const PostCard = ({ post, onDelete }) => {
           <i className={repostStatus === 'done' ? 'fa-solid fa-check' : 'fa-solid fa-retweet'} />
           
           <span className="text-xs">
-            {repostStatus === 'done' ? 'Reposted!' : repostStatus === 'failed' ? 'Failed' : 'Repost'}
+            {reposting ? '...' : repostStatus === 'done' ? 'Reposted!' : repostStatus === 'failed' ? 'Failed' : 'Repost'}
           </span>
         </button>
       </div>

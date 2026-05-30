@@ -7,6 +7,7 @@ import { followUser, unfollowUser, checkFollowStatus } from '../features/users/u
 import Avatar from '../components/shared/Avatar'
 import Loader from '../components/shared/Loader'
 import ErrorMessage from '../components/shared/ErrorMessage'
+import PostCard from '../components/posts/PostCard'
 
 import Button from '../components/shared/Button'
 
@@ -131,6 +132,23 @@ const Profile = () => {
             </a>
           )}
         </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Posts</h2>
+          <span className="text-xs text-gray-500">{profile.posts?.length || 0} posts</span>
+        </div>
+
+        {profile.posts?.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {profile.posts.map((post) => (
+              <PostCard key={post._id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No posts yet.</p>
+        )}
       </div>
     </div>
   )

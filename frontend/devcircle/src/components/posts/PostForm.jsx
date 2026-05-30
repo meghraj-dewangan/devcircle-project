@@ -40,39 +40,6 @@ const PostForm = () => {
     return first.endsWith('.') ? first : `${first}.`
   }
 
-  const generateBasicTags = (text) => {
-    const lower = text.toLowerCase()
-    const tags = []
-
-    
-    const hashtagMatches = lower.match(/#[a-z0-9_]+/g) || []
-    hashtagMatches.forEach((tag) => tags.push(normalizeTag(tag)))
-
-    // 2) Add simple keyword-based tags only if ai fails
-    const keywordMap = [
-      ['react', 'react'],
-      ['node', 'nodejs'],
-      ['express', 'express'],
-      ['mongo', 'mongodb'],
-      ['javascript', 'javascript'],
-      ['typescript', 'typescript'],
-      ['api', 'api'],
-      ['flutter', 'flutter'],
-
-      ['laravel', 'laravel'],
-      ['java', 'java'],
-      ['python', 'python'],
-      ['php', 'php'],
-    ]
-
-    keywordMap.forEach(([key, tag]) => {
-
-      if (lower.includes(key)) tags.push(tag)
-    })
-
-    return [...new Set(tags)].slice(0, 5)
-  }
-
   const handleImageChange = (e) => {
 
     if (redirectGuestToLogin()) return
@@ -131,15 +98,13 @@ const PostForm = () => {
       const tags = Array.isArray(data.tags) ? data.tags : []
       if (tags.length > 0) {
         setSuggestedTags(tags.map(normalizeTag).filter(Boolean).slice(0, 5))
-
       } else {
-        setSuggestedTags(generateBasicTags(content))
+        setSuggestedTags([])
       }
-      setAiStatus('Generated.')
+      setAiStatus(tags.length > 0 ? 'Generated.' : '')
     } catch {
-      setSuggestedTags(generateBasicTags(content))
-
-      setAiStatus('Generated.')
+      setSuggestedTags([])
+      setAiStatus('')
       setAiError('')
     } finally {
 
@@ -346,4 +311,3 @@ const PostForm = () => {
 }
 
 export default PostForm
-
