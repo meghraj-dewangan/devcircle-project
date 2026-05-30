@@ -1,0 +1,33 @@
+'Log files:
+G:\programing\DevCircle\frontend\devcircle\.npm-cache\_logs\2026-05-29T15_38_21_444Z-debug-0.log
+
+# npm resolution error report
+
+While resolving: @reduxjs/toolkit@2.0.1
+Found: react@19.2.6
+node_modules/react
+  peer react@"^19.2.6" from react-dom@19.2.6
+  node_modules/react-dom
+    react-dom@"^19.2.6" from the root project
+    peer react-dom@">=16.8" from react-router-dom@6.21.1
+    node_modules/react-router-dom
+      react-router-dom@"6.21.1" from the root project
+  react@"^19.2.6" from the root project
+  peer react@">=16.8" from react-router-dom@6.21.1
+  node_modules/react-router-dom
+    react-router-dom@"6.21.1" from the root project
+
+Could not resolve dependency:
+peerOptional react@"^16.9.0 || ^17.0.0 || ^18" from @reduxjs/toolkit@2.0.1
+node_modules/@reduxjs/toolkit
+  @reduxjs/toolkit@"2.0.1" from the root project
+
+Conflicting peer dependency: react@18.3.1
+node_modules/react
+  peerOptional react@"^16.9.0 || ^17.0.0 || ^18" from @reduxjs/toolkit@2.0.1
+  node_modules/@reduxjs/toolkit
+    @reduxjs/toolkit@"2.0.1" from the root project
+
+Fix the upstream dependency conflict, or retry
+this command with --force or --legacy-peer-deps
+to accept an incorrect (and potentially broken) dependency resolution.
