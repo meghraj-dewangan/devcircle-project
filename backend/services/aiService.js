@@ -2,6 +2,166 @@
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
+const normalizeText = (value = '') => value.replace(/\s+/g, ' ').trim();
+
+const splitWords = (value = '') =>
+  normalizeText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+const capitalizeSentence = (value = '') => {
+  const text = normalizeText(value);
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const placeholderRewrites = new Set([
+  'string',
+  'title',
+  'body',
+  'text',
+  'json',
+  'null',
+  'undefined',
+]);
+
+const isPlaceholderRewrite = (value) => {
+  const text = normalizeText(value).toLowerCase();
+
+  if (!text) return true;
+  if (placeholderRewrites.has(text)) return true;
+  if (text.length < 8) return true;
+
+  return false;
+};
+
+const topicKeywords = [
+  'react',
+  'node',
+  'nodejs',
+  'express',
+  'mongodb',
+  'mongoose',
+  'jwt',
+  'api',
+  'axios',
+  'vite',
+  'redux',
+  'socket',
+  'upload',
+  'auth',
+  'login',
+  'profile',
+  'post',
+  'question',
+  'frontend',
+  'backend',
+];
+
+const genericQuestionWords = new Set([
+  'help',
+  'issue',
+  'problem',
+  'error',
+  'question',
+  'fix',
+  'urgent',
+  'pls',
+  'please',
+  'need',
+  'how',
+  'why',
+]);
+
+const extractTopic = (title, body) => {
+  const words = splitWords(`${title} ${body}`);
+
+  const keyword = words.find((word) => topicKeywords.includes(word));
+  if (keyword) return keyword;
+
+  const usefulWord = words.find((word) => word.length > 3 && !genericQuestionWords.has(word));
+  return usefulWord || '';
+};
+
+const improveQuestionLocally = (title, body) => {
+  const cleanTitle = normalizeText(title);
+  const cleanBody = normalizeText(body);
+  const topic = extractTopic(cleanTitle, cleanBody);
+
+  const improvedTitle = topic
+    ? `How do I fix this ${topic} issue?`
+    : 'How do I fix this issue?';
+
+  const improvedBody = cleanBody
+    ? capitalizeSentence(cleanBody)
+    : 'Please share the error message, what you expected, and what you already tried.';
+
+  return {
+    title: improvedTitle,
+    body: improvedBody,
+  };
+};
+
+const detectVagueLocally = (title, body) => {
+  const cleanTitle = normalizeText(title);
+  const cleanBody = normalizeText(body);
+  const titleWords = splitWords(cleanTitle);
+  const bodyWords = splitWords(cleanBody);
+  const topic = extractTopic(cleanTitle, cleanBody);
+
+  if (!cleanTitle || !cleanBody) {
+    return { isVague: true, reason: 'Add both a clear title and description.' };
+  }
+
+  if (cleanTitle.length < 12 || titleWords.length < 3) {
+    return { isVague: true, reason: 'Title is too short. Make it more specific.' };
+  }
+
+  if (!topic && titleWords.some((word) => genericQuestionWords.has(word))) {
+    return { isVague: true, reason: 'Add the exact technology or error in the title.' };
+  }
+
+  if (cleanBody.length < 40 || bodyWords.length < 10) {
+    return {
+      isVague: true,
+      reason: 'Add more detail: error, expected result, and what you tried.',
+    };
+  }
+
+  const detailSignals = [
+    'error',
+    'expected',
+    'actual',
+    'stack',
+    'trace',
+    'steps',
+    'tried',
+    'version',
+    'code',
+    'react',
+    'node',
+    'api',
+    'login',
+    'mongo',
+    'jwt',
+  ];
+
+  const hasDetail = detailSignals.some((word) => cleanBody.toLowerCase().includes(word))
+    || cleanBody.includes('```')
+    || /\d/.test(cleanBody);
+
+  if (!hasDetail) {
+    return {
+      isVague: true,
+      reason: 'Add the error message and what you already tried.',
+    };
+  }
+
+  return { isVague: false, reason: '' };
+};
+
 
 const callGroq = async(prompt)=>{
     if(!process.env.GROQ_API_KEY){
@@ -51,7 +211,15 @@ const parseJsonFromModel = (text)=>{
     cleaned = cleaned.slice(0, -3).trim();
   }
 
-   return JSON.parse(cleaned);
+   try {
+    return JSON.parse(cleaned);
+   } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    throw new Error('Unable to parse model response');
+   }
 
 };
 
@@ -67,6 +235,7 @@ return callGroq(prompt);
 //improve question title and body
 
 const improveQuestion = async (title, body) => {
+  const fallback = improveQuestionLocally(title, body);
   const prompt = `Rewrite this technical question to be clearer.
 Return valid JSON only with fields: "title", "body".
 Title: ${title}
@@ -75,11 +244,21 @@ Body: ${body}`;
   const text = await callGroq(prompt);
 
   try {
-    return parseJsonFromModel(text);
+    const parsed = parseJsonFromModel(text);
+    const titleText = normalizeText(parsed?.title || '');
+    const bodyText = normalizeText(parsed?.body || '');
+
+    if (!isPlaceholderRewrite(titleText) && !isPlaceholderRewrite(bodyText)) {
+      return {
+        title: titleText,
+        body: bodyText,
+      };
+    }
   } catch {
-    // If parsing fails, return original values
-    return { title, body };
+    // Fall back to a simple local rewrite when the model output is not usable.
   }
+
+  return fallback;
 };
 
 // generate tags for post and questions
@@ -108,10 +287,24 @@ Body: ${body}`;
   const text = await callGroq(prompt);
 
   try {
-    return parseJsonFromModel(text);
+    const parsed = parseJsonFromModel(text);
+    const localResult = detectVagueLocally(title, body);
+
+    if (typeof parsed?.isVague === 'boolean') {
+      if (parsed.isVague) {
+        return {
+          isVague: true,
+          reason: normalizeText(parsed.reason) || localResult.reason || 'Please add more detail.',
+        };
+      }
+
+      return localResult.isVague ? localResult : { isVague: false, reason: '' };
+    }
   } catch {
-    return { isVague: false, reason: '' };
+    // Fall back to local checks if the model response is malformed.
   }
+
+  return detectVagueLocally(title, body);
 };
 
 // suggest an answer to a developer question

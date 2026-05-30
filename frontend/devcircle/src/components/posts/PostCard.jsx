@@ -117,22 +117,20 @@ const PostCard = ({ post, onDelete }) => {
       </div>
 
       
-      <Link to={`/posts/${postRef}`}>
+      <div className="mb-3">
+        <p className="text-gray-800 text-sm leading-relaxed">{post.content}</p>
+      </div>
 
-        <p className="text-gray-800 text-sm leading-relaxed mb-3">{post.content}</p>
-
-        {post.image && (
-          <div className="mb-3 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
-            <img
-              src={getImageSrc(post.image)}
-              alt="post"
-              className="w-full max-h-96 object-contain"
-              onError={(e) => { e.currentTarget.style.display = 'none' }}
-            />
-          </div>
-        )}
-
-      </Link>
+      {post.image && (
+        <div className="mb-3 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+          <img
+            src={getImageSrc(post.image)}
+            alt="post"
+            className="w-full max-h-96 object-contain"
+            onError={(e) => { e.currentTarget.style.display = 'none' }}
+          />
+        </div>
+      )}
 
 
       {post.tags?.length > 0 && (
@@ -202,4 +200,3 @@ const PostCard = ({ post, onDelete }) => {
 }
 
 export default PostCard
-

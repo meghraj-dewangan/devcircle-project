@@ -23,7 +23,7 @@ const QuestionForm = () => {
   const [aiStatus, setAiStatus] = useState('')
 
   const [vagueWarning, setVagueWarning] = useState('')
-  const [clarityChecking, setClarityChecking] = useState(false)
+  const [, setClarityChecking] = useState(false)
 
   const cleanText = (text) => {
     const trimmed = text.replace(/\s+/g, ' ').trim()
@@ -220,11 +220,7 @@ const QuestionForm = () => {
     const vagueResult = await checkVagueQuestion()
 
     if (vagueResult.isVague) {
-
-      const shouldContinue = window.confirm(
-        `This question may be too vague: ${vagueResult.reason}\n\nDo you still want to post it?`
-      )
-      if (!shouldContinue) return
+      return
     }
 
     setLoading(true)
@@ -339,16 +335,6 @@ const QuestionForm = () => {
           className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 disabled:opacity-40"
         >
           {aiLoading ? '...' : 'Suggest tags'}
-        </button>
-
-        <button
-          type="button"
-          onClick={checkVagueQuestion}
-          disabled={aiLoading || clarityChecking}
-          className="text-xs text-amber-700 border border-amber-200 px-3 py-1.5 rounded-lg hover:bg-amber-50 disabled:opacity-40"
-        >
-
-          {clarityChecking ? 'Checking...' : 'Check clarity'}
         </button>
 
       </div>

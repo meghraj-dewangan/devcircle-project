@@ -260,10 +260,8 @@ const Search = () => {
               <div className="flex flex-col gap-2">
 
                 {(results.posts || []).map((p) => (
-                  <Link
+                  <div
                     key={p._id}
-                    to={`/posts/${p.postNumber || p._id}`}
-
                     className="bg-white border border-gray-200 rounded-xl p-3 hover:bg-gray-50 flex gap-3 items-start"
                   >
                     <Avatar src={p.author?.avatar} username={p.author?.username} size="sm" />
@@ -273,15 +271,13 @@ const Search = () => {
                       {p.image && (
                         <img
                           src={getImageSrc(p.image)}
-
                           alt="post"
                           onError={(e) => { e.currentTarget.style.display = 'none' }}
                           className="mt-2 w-full max-h-40 object-contain rounded-lg bg-gray-50"
                         />
                       )}
                     </div>
-
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
