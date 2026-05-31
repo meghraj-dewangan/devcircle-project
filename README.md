@@ -131,7 +131,7 @@ MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=7d
 GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key
+
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 ```
