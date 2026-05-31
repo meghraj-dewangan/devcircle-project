@@ -8,39 +8,47 @@ export const fetchUserProfile = createAsyncThunk(
   async (username, { rejectWithValue }) => {
 
     try {
+
       const { data } = await axiosfetch.get(`/users/${username}`)
       return data
 
     } catch (error) {
 
       return rejectWithValue(error.response?.data?.message || 'User not found')
+
     }
   }
 )
 
 export const updateProfile = createAsyncThunk(
+
   'users/updateProfile',
 
   async (formData, { rejectWithValue }) => {
     try {
+
       const { data } = await axiosfetch.put('/users/profile', formData)
       return data
 
     } catch (error) {
+
       return rejectWithValue(error.response?.data?.message || 'Failed to update profile')
     }
   }
 )
 
 export const uploadAvatar = createAsyncThunk(
+
   'users/uploadAvatar',
 
   async (formData, { rejectWithValue }) => {
+
     try {
       const { data } = await axiosfetch.post('/users/avatar', formData)
       return data
 
     } catch (error) {
+
       return rejectWithValue(error.response?.data?.message || 'Failed to upload avatar')
     }
   }
@@ -99,6 +107,7 @@ const userSlice = createSlice({
     error: null,
 
   },
+  
   reducers: {
     clearProfile: (state) => {
 

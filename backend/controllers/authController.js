@@ -5,6 +5,7 @@ import generateToken from '../utils/generateToken.js';
 
 
 const register = async (req, res) => {
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -17,6 +18,7 @@ const register = async (req, res) => {
    
     const existing = await User.findOne({ $or: [{ email }, { username }] });
     if (existing) {
+
       return res.status(400).json({ message: 'Username or email is already taken' });
     }
 
@@ -42,6 +44,7 @@ const register = async (req, res) => {
 
 // login
 const login = async (req, res) => {
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -79,7 +82,7 @@ const login = async (req, res) => {
   }
 };
 
-// auth protected get user but show password
+
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');

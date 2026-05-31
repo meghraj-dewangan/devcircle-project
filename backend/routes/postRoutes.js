@@ -23,7 +23,7 @@ router.post('/:id/repost', protect, repostPost);
 router.post('/:id/like', protect, likePost);
 router.delete('/:id/like', protect, unlikePost);
 
-// Comments nested under posts
+
 router.get('/:id/comments', getComments);
 router.post('/:id/comments', protect, addComment);
 

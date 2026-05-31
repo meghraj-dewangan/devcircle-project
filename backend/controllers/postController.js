@@ -4,6 +4,7 @@ import Follow from '../models/Follow.js';
 import Counter from '../models/Counter.js';
 
 const findPostByRef = (postRef, withAuthor = false) => {
+
   const isNumberRef = /^\d+$/.test(postRef);
 
   if (isNumberRef) {
@@ -16,6 +17,7 @@ const findPostByRef = (postRef, withAuthor = false) => {
 };
 
 const ensurePostNumber = async (post) => {
+
   if (!post || post.postNumber) return post;
 
   const counter = await Counter.findOneAndUpdate(
@@ -29,7 +31,7 @@ const ensurePostNumber = async (post) => {
   return post;
 };
 
-// posts from users you follow + your own
+// posts from users you follow and your own
 const getFeed = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -38,6 +40,7 @@ const getFeed = async (req, res) => {
 
     const followData = await Follow.find({ follower: req.user._id }).select('following');
     const followingIds = followData.map((f) => f.following);
+
     followingIds.push(req.user._id); 
 
     const posts = await Post.find({ author: { $in: followingIds } })
@@ -89,6 +92,7 @@ const getExplorePosts = async (req, res) => {
     const total = await Post.countDocuments();
 
     res.json({
+
       posts,
       page,
       totalPages: Math.ceil(total / limit),
@@ -125,29 +129,30 @@ const createPost = async (req, res) => {
 
     if (!Array.isArray(parsed)) return [];
 
-    const clean = parsed
-      .map((t) => String(t).trim().toLowerCase().replace(/^#/, ''))
-      .filter(Boolean);
-
+    const clean = parsed.map((t) => String(t).trim().toLowerCase().replace(/^#/, '')).filter(Boolean);
+      
     return [...new Set(clean)].slice(0, 5);
   };
 
   try {
     const postData = {
+
       author: req.user._id,
       content,
       tags: normalizeTags(tags),
     };
 
     const counter = await Counter.findOneAndUpdate(
+
       { key: 'postNumber' },
       { $inc: { value: 1 } },
       { new: true, upsert: true }
     );
     postData.postNumber = counter.value;
 
-    // Attach image URL if a file was uploaded
+    
     if (req.file) {
+
       postData.image = `/uploads/${req.file.filename}`;
     }
 
@@ -162,6 +167,7 @@ const createPost = async (req, res) => {
 
 // get a single post
 const getPostById = async (req, res) => {
+
   try {
     const post = await findPostByRef(req.params.id, true).populate({
       path: 'repostOf',
@@ -183,6 +189,7 @@ const getPostById = async (req, res) => {
 
 // repost an existing post into your feed
 const repostPost = async (req, res) => {
+
   try {
     const sourcePost = await findPostByRef(req.params.id);
     if (!sourcePost) {
@@ -197,14 +204,17 @@ const repostPost = async (req, res) => {
     }
 
     const existingRepost = await Post.findOne({
+
       author: req.user._id,
       repostOf: originalPost._id,
     });
 
     if (existingRepost) {
+
       const populatedExisting = await Post.findById(existingRepost._id)
         .populate('author', 'username avatar')
         .populate({
+
           path: 'repostOf',
           select: 'content image postNumber createdAt author',
           populate: { path: 'author', select: 'username avatar' },
@@ -214,21 +224,25 @@ const repostPost = async (req, res) => {
     }
 
     const counter = await Counter.findOneAndUpdate(
+
       { key: 'postNumber' },
       { $inc: { value: 1 } },
       { new: true, upsert: true }
     );
 
     const repost = await Post.create({
+
       author: req.user._id,
       content: originalPost.content,
       image: originalPost.image || '',
       tags: originalPost.tags || [],
       repostOf: originalPost._id,
       postNumber: counter.value,
+
     });
 
     originalPost.repostCount = (originalPost.repostCount || 0) + 1;
+
     await originalPost.save();
 
     const populated = await Post.findById(repost._id)
@@ -241,16 +255,20 @@ const repostPost = async (req, res) => {
 
     return res.status(201).json(populated);
   } catch (error) {
+
     return res.status(500).json({ message: 'Server error' });
   }
 };
 
 
 const deletePost = async (req, res) => {
+
   try {
+
     const post = await findPostByRef(req.params.id);
 
     if (!post) {
+
       return res.status(404).json({ message: 'Post not found' });
     }
 
@@ -259,8 +277,10 @@ const deletePost = async (req, res) => {
     }
 
     if (post.repostOf) {
+
       await Post.findByIdAndUpdate(post.repostOf, {
         $inc: { repostCount: -1 },
+        
       });
     }
 

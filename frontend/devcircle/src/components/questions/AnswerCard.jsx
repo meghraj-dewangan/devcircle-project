@@ -5,6 +5,7 @@ import Avatar from '../shared/Avatar'
 
 const AnswerCard = ({ answer, questionAuthorId, onAccept }) => {
   const { user } = useSelector((state) => state.auth)
+
   const [votes, setVotes] = useState({
 
     upvotes: answer.upvotes,
@@ -54,12 +55,12 @@ const AnswerCard = ({ answer, questionAuthorId, onAccept }) => {
         </div>
       </div>
 
-      {/* Answer body */}
+      
       <p className="text-sm text-gray-800 leading-relaxed mb-4 whitespace-pre-wrap">
         {answer.body}
       </p>
 
-      {/* Vote buttons + accept */}
+      {/* Vote buttons and accept */}
       <div className="flex items-center gap-3">
 
         <button

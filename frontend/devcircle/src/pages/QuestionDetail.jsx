@@ -29,8 +29,10 @@ const QuestionDetail = () => {
 
   // edit -delete state
   const [isEditing, setIsEditing] = useState(false)
+
   const [editTitle, setEditTitle] = useState('')
   const [editBody, setEditBody] = useState('')
+
   const [editTags, setEditTags] = useState('')
   const [editLoading, setEditLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -98,6 +100,7 @@ const QuestionDetail = () => {
       setAnswers([...answers, data])
       setAnswerBody('')
     } catch {
+
 
       // silently skip
     } finally {
@@ -173,8 +176,9 @@ const QuestionDetail = () => {
             </span>
           )}
 
-          {/* Owner actions */}
+         
           {isOwner && !isEditing && (
+
             <div className="ml-auto flex items-center gap-2">
 
               <button
@@ -183,6 +187,7 @@ const QuestionDetail = () => {
               >
                 <i className="fa-solid fa-pen mr-1" />
                 Edit
+
               </button>
 
               <button
@@ -201,6 +206,7 @@ const QuestionDetail = () => {
 
        
         {isEditing ? (
+
           <form onSubmit={handleSaveEdit} className="flex flex-col gap-3">
 
             <input
@@ -299,6 +305,7 @@ const QuestionDetail = () => {
 
      {/* answer form */}
       {user && (
+        
         <form onSubmit={handleSubmitAnswer} className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Your Answer</h3>
 

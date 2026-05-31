@@ -28,14 +28,17 @@ const ChatList = ({ onSelectUser }) => {
     setSearchLoading(true)
 
     try {
+
       const { data } = await axiosfetch.get('/search', { params: { type: 'users', q: q.trim() } })
       setSearchResults(data.users || [])
     } catch {
+
       setSearchResults([])
 
     } finally {
       setSearchLoading(false)
     }
+
   }
 
   const handleSelectSearchUser = (u) => {
@@ -48,9 +51,11 @@ const ChatList = ({ onSelectUser }) => {
   if (loading && !conversations.length) return <Loader />
 
   return (
+
     <div className="flex flex-col h-full">
 
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+
         <h2 className="text-sm font-semibold text-gray-900">Messages</h2>
 
         <button
@@ -61,10 +66,12 @@ const ChatList = ({ onSelectUser }) => {
           <i className="fa-solid fa-pen-to-square text-sm" />
 
         </button>
+
       </div>
 
       
       {showSearch && (
+
         <div className="border-b border-gray-200 p-3">
           <input
             autoFocus
@@ -99,6 +106,7 @@ const ChatList = ({ onSelectUser }) => {
       )}
 
       {conversations.length === 0 && !showSearch ? (
+
         <div className="flex flex-col items-center justify-center flex-1 gap-2 py-8 px-4 text-center">
           <i className="fa-regular fa-comment-dots text-2xl text-gray-300" />
           <p className="text-sm text-gray-400">No conversations yet</p>
@@ -106,11 +114,13 @@ const ChatList = ({ onSelectUser }) => {
             onClick={() => setShowSearch(true)}
             className="text-xs text-blue-500 hover:underline mt-1"
           >
+
             Start a new message
           </button>
 
         </div>
       ) : (
+
         conversations.map((conv) => (
 
           <button
@@ -125,8 +135,10 @@ const ChatList = ({ onSelectUser }) => {
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full" />
               )}
             </div>
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
+
                 <p className="text-sm font-medium text-gray-900">{conv.user.username}</p>
                 {conv.unreadCount > 0 && (
                   <span className="text-xs bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
@@ -135,6 +147,7 @@ const ChatList = ({ onSelectUser }) => {
                   </span>
                 )}
               </div>
+
               <div className="flex items-center gap-2">
                 <span
                   className={`text-[11px] ${
@@ -146,6 +159,7 @@ const ChatList = ({ onSelectUser }) => {
                 </span>
                 <p className="text-xs text-gray-400 truncate">{conv.lastMessage}</p>
               </div>
+              
             </div>
             
           </button>

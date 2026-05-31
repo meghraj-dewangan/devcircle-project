@@ -25,12 +25,14 @@ const getPopularTags = async (req, res) => {
     ]);
     res.json(tags);
   } catch (error) {
+
     res.status(500).json({ message: 'Server error' });
   }
 };
 
 // get all questions with tag filter
 const getQuestions = async (req, res) => {
+
   try {
     const page = parseInt(req.query.page) || 1;
 
@@ -165,12 +167,12 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
-// POST /api/questions/:id/vote - upvote or downvote a question
+//  upvote or downvote a question
 const voteQuestion = async (req, res) => {
   const { voteType } = req.body;
 
   if (!['up', 'down'].includes(voteType)) {
-    return res.status(400).json({ message: 'voteType must be "up" or "down"' });
+    return res.status(400).json({ message: 'voteType must be up or down' });
   }
 
   try {
@@ -192,11 +194,14 @@ const voteQuestion = async (req, res) => {
         await existingVote.deleteOne();
 
         if (voteType === 'up') question.upvotes = Math.max(0, question.upvotes - 1);
+
         else question.downvotes = Math.max(0, question.downvotes - 1);
       } else {
        
         if (existingVote.voteType === 'up') {
+
           question.upvotes = Math.max(0, question.upvotes - 1);
+          
           question.downvotes += 1;
         } else {
 

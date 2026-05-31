@@ -25,7 +25,7 @@ const search = async (req, res) => {
         .limit(type === 'users' ? 20 : 8);
     }
 
-    // If query exists, find users whose username matches query.
+    
    
     let matchedUserIds = [];
 
@@ -49,10 +49,10 @@ const search = async (req, res) => {
           }
         : {};
 
-      results.posts = await Post.find(postFilter)
-        .populate('author', 'username avatar')
-        .sort({ createdAt: -1 })
-        .limit(type === 'posts' ? 20 : 8);
+      results.posts = await Post.find(postFilter).populate('author', 'username avatar').sort({ createdAt: -1 }).limit(type === 'posts' ? 20 : 8);
+        
+        
+        
     }
 
     // Questions
@@ -68,10 +68,8 @@ const search = async (req, res) => {
           }
         : {};
 
-      results.questions = await Question.find(questionFilter)
-        .populate('author', 'username avatar')
-        .sort({ createdAt: -1 })
-        .limit(type === 'questions' ? 20 : 8);
+      results.questions = await Question.find(questionFilter).populate('author', 'username avatar').sort({ createdAt: -1 }).limit(type === 'questions' ? 20 : 8);
+        
     }
 
     res.json(results);

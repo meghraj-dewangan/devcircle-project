@@ -43,9 +43,11 @@ const RightSidebar = () => {
   return (
     <aside className="hidden xl:block w-60 sticky top-16 h-fit">
       {/* Popular Tags */}
+
       {popularTags.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Popular Tags</h3>
+          
           <div className="flex flex-wrap gap-2">
             {popularTags.slice(0, 8).map((tag) => (
               <Link
@@ -64,11 +66,15 @@ const RightSidebar = () => {
       )}
 
       {/* Quick links */}
+
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Links</h3>
         <div className="flex flex-col gap-2 text-sm text-gray-600">
+
           <Link to="/explore" className="hover:text-blue-600">Explore Posts</Link>
+
           <Link to="/questions" className="hover:text-blue-600">Browse Questions</Link>
+
           <Link to="/ask" className="hover:text-blue-600">Ask a Question</Link>
           <Link to="/search" className="hover:text-blue-600">Search</Link>
         </div>

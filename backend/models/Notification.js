@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    // Who triggere this notification
+   
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -19,10 +19,12 @@ const notificationSchema = new mongoose.Schema(
       enum: ['like', 'comment', 'follow', 'answer'],
       required: true,
     },
-    // ID of the related post/question/answer
+
+   
     referenceId: {
       type: mongoose.Schema.Types.ObjectId,
     },
+    
     isRead: {
       type: Boolean,
       default: false,

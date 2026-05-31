@@ -43,13 +43,14 @@ const PostFeed = ({ mode = 'feed' }) => {
   if (!loading && posts.length === 0) {
 
     const msg = activeMode === 'feed'
-      ? "You're not following anyone yet. Go to Explore to discover people."
-      : 'No posts yet. Be the first to post!'
+      ? "You're not following anyone yet. Go to Explore to discover people.": 'No posts yet. Be the first to post!'
+      
     return <EmptyState message={msg} />
 
   }
 
   return (
+    
     <div className="flex flex-col gap-3">
 
       {posts.map((post) => (

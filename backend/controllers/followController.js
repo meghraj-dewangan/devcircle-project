@@ -27,7 +27,6 @@ const followUser = async (req, res) => {
 
     await Follow.create({ follower: req.user._id, following: userId });
 
-    // Update follower/following counts for both users
     await User.findByIdAndUpdate(req.user._id, { $inc: { followingCount: 1 } });
     
     await User.findByIdAndUpdate(userId, { $inc: { followerCount: 1 } });
@@ -78,18 +77,20 @@ const getFollowStatus = async (req, res) => {
   }
 };
 
-//bulk check follow status
+
 const getBulkFollowStatus = async (req, res) => {
   try {
     const ids = (req.query.ids || '').split(',').filter(Boolean);
     if (!ids.length) return res.json({});
 
     const follows = await Follow.find({
+
       follower: req.user._id,
       following: { $in: ids },
     }).select('following');
 
     const result = {};
+    
     ids.forEach((id) => { result[id] = false; });
     follows.forEach((f) => { result[f.following.toString()] = true; });
 

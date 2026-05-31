@@ -70,6 +70,7 @@ const Navbar = () => {
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
                 )}
               </Link>
+
               <Link to={`/profile/${user.username}`}>
                 <Avatar src={user.avatar} username={user.username} size="sm" />
               </Link>
@@ -82,11 +83,13 @@ const Navbar = () => {
                 <i className="fa-solid fa-right-from-bracket" />
               </button>
             </>
+
           ) : (
             <>
               <Link to="/login" className="text-sm text-gray-600 hover:text-blue-600">
                 Login
               </Link>
+              
               <Link
                 to="/register"
                 className="text-sm bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600"

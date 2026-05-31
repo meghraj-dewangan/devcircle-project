@@ -80,11 +80,13 @@ const PostCard = ({ post, onDelete }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
-      {/* Repost */}
+    
       {post.repostOf && (
         <div className="mb-2 text-xs text-gray-500 flex items-center gap-1.5">
           <i className="fa-solid fa-retweet text-gray-400" />
+
           <span>
+
             Reposted from
             {' '}
             <Link to={`/profile/${post.repostOf.author?.username}`} className="text-blue-600 hover:underline">
@@ -92,13 +94,16 @@ const PostCard = ({ post, onDelete }) => {
 
             </Link>
           </span>
+
         </div>
       )}
 
     
       <div className="flex items-start justify-between mb-3">
+
         <Link to={`/profile/${post.author?.username}`} className="flex items-center gap-2">
           <Avatar src={post.author?.avatar} username={post.author?.username} size="md" />
+
           <div>
             <p className="text-sm font-medium text-gray-900">{post.author?.username}</p>
             <p className="text-xs text-gray-400">
@@ -116,15 +121,18 @@ const PostCard = ({ post, onDelete }) => {
           >
             <i className="fa-solid fa-trash-can" />
           </button>
+
         )}
       </div>
 
       
       <div className="mb-3">
+
         <p className="text-gray-800 text-sm leading-relaxed">{post.content}</p>
       </div>
 
       {post.image && (
+
         <div className="mb-3 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
           <img
             src={getImageSrc(post.image)}
@@ -153,7 +161,7 @@ const PostCard = ({ post, onDelete }) => {
 
    
       <div className="flex items-center gap-1 pt-2 border-t border-gray-100">
-        {/* Like */}
+       
         <button
           onClick={handleLike}
 
@@ -169,7 +177,7 @@ const PostCard = ({ post, onDelete }) => {
         </button>
 
 
-        {/* Comment */}
+        
         <Link
           to={`/posts/${postRef}`}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors"
@@ -195,8 +203,10 @@ const PostCard = ({ post, onDelete }) => {
           <i className={repostStatus === 'done' ? 'fa-solid fa-check' : 'fa-solid fa-retweet'} />
           
           <span className="text-xs">
+
             {reposting ? '...' : repostStatus === 'done' ? 'Reposted!' : repostStatus === 'failed' ? 'Failed' : 'Repost'}
           </span>
+          
         </button>
       </div>
     </div>

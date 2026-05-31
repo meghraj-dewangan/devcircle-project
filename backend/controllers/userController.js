@@ -20,13 +20,12 @@ const getUserProfile = async (req, res) => {
         path: 'repostOf',
         select: 'content image postNumber createdAt author',
         populate: { path: 'author', select: 'username avatar' },
-      })
-      .sort({ createdAt: -1 })
-      .limit(10);
-
+      }).sort({ createdAt: -1 }).limit(10);
+      
     res.json({
       ...user.toObject(),
       posts,
+      
     });
 
   } catch (error) {

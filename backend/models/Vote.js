@@ -26,7 +26,7 @@ const voteSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// One vote per user per target item
+// One vote per user
 voteSchema.index({ user: 1, targetType: 1, targetId: 1 }, { unique: true });
 
 export default mongoose.model('Vote', voteSchema);

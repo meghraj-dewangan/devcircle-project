@@ -9,10 +9,13 @@ const QuestionCard = ({ question }) => {
     <div className="bg-white border border-gray-200 rounded-xl p-4">
      
       <div className="flex items-center gap-2 mb-3">
+
         <Link to={`/profile/${question.author?.username}`}>
+
           <Avatar src={question.author?.avatar} username={question.author?.username} size="sm" />
         </Link>
         <div className="flex-1">
+
           <Link
             to={`/profile/${question.author?.username}`}
             className="text-sm font-medium text-gray-900 hover:text-blue-600"
@@ -20,10 +23,12 @@ const QuestionCard = ({ question }) => {
             {question.author?.username}
 
           </Link>
+
           <p className="text-xs text-gray-400">
             {new Date(question.createdAt).toLocaleDateString()}
 
           </p>
+
         </div>
         {question.isResolved && (
 
@@ -31,17 +36,20 @@ const QuestionCard = ({ question }) => {
             Solved
           </span>
         )}
+
       </div>
 
-      {/* Title */}
+      
       <Link to={`/questions/${question._id}`}>
+
         <h3 className="text-base font-medium text-gray-900 hover:text-blue-600 mb-2 leading-snug">
 
           {question.title}
         </h3>
+
       </Link>
 
-      {/* Tags */}
+   
 
       {question.tags && question.tags.length > 0 && (
 
@@ -65,17 +73,20 @@ const QuestionCard = ({ question }) => {
 
           ?? {question.answerCount || 0} answer{question.answerCount !== 1 ? 's' : ''}
         </span>
+
         <span className="flex items-center gap-1">
 
           <i className="fa-regular fa-thumbs-up" />
           {question.upvotes || 0}
 
         </span>
+
         <span className="flex items-center gap-1">
 
           <i className="fa-regular fa-thumbs-down" />
           
           {question.downvotes || 0}
+          
         </span>
       </div>
     </div>

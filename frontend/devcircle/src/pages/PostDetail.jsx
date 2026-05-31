@@ -32,8 +32,10 @@ const PostDetail = () => {
         setPost(postRes.data)
         setComments(commentRes.data)
       } catch {
+
         setError('Failed to load post')
       } finally {
+
         setLoading(false)
       }
     }
@@ -42,6 +44,7 @@ const PostDetail = () => {
   }, [id])
 
   useEffect(() => {
+
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         navigate(-1)
@@ -67,6 +70,7 @@ const PostDetail = () => {
   }
 
   const handleAddComment = async (e) => {
+
     e.preventDefault()
 
     if (!commentText.trim() || commenting) return
@@ -89,11 +93,14 @@ const PostDetail = () => {
   }
 
   const handleDeleteComment = async (commentId) => {
+
     try {
+
       await axiosfetch.delete(`/comments/${commentId}`)
       setComments((prev) => prev.filter((c) => c._id !== commentId))
       setPost((prev) => (prev ? { ...prev, commentCount: Math.max(0, (prev.commentCount || 1) - 1) } : prev))
     } catch {
+
       // keep the composer quiet and simple
     }
   }
@@ -139,7 +146,9 @@ const PostDetail = () => {
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
+
             <h2 className="text-base font-semibold text-gray-900">Comments</h2>
+
             <p className="text-xs text-gray-500">{comments.length} replies</p>
           </div>
 
@@ -150,20 +159,28 @@ const PostDetail = () => {
             aria-label="Close comments"
           >
             <i className="fa-solid fa-xmark" />
+
           </button>
+
         </div>
 
         <div className="flex-1 overflow-y-auto">
+
           <div className="px-5 pt-5 pb-4 border-b border-gray-100">
+
             <div className="flex items-start gap-3">
+
               <Avatar src={post.author?.avatar} username={post.author?.username} size="md" />
 
               <div className="flex-1 min-w-0">
+
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-semibold text-gray-900">{post.author?.username}</p>
+
                   <span className="text-xs text-gray-400">
                     {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ''}
                   </span>
+
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-gray-800 whitespace-pre-wrap">
@@ -172,6 +189,7 @@ const PostDetail = () => {
 
                 {post.image && (
                   <div className="mt-3 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50">
+
                     <img
                       src={getImageSrc(post.image)}
                       alt="post"
@@ -181,12 +199,16 @@ const PostDetail = () => {
                       }}
                     />
                   </div>
+
                 )}
               </div>
+
             </div>
+
           </div>
 
           <div className="px-5 py-4">
+
             {comments.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {comments.map((c) => (
@@ -194,12 +216,16 @@ const PostDetail = () => {
                     <Avatar src={c.author?.avatar} username={c.author?.username} size="sm" />
 
                     <div className="flex-1 min-w-0">
+
                       <div className="flex items-center gap-2 flex-wrap">
+
                         <p className="text-sm font-medium text-gray-900">{c.author?.username}</p>
                         <span className="text-xs text-gray-400">
                           {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}
                         </span>
+
                       </div>
+
                       <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{c.content}</p>
                     </div>
 
@@ -215,6 +241,7 @@ const PostDetail = () => {
                   </div>
                 ))}
               </div>
+
             ) : (
               <p className="text-sm text-gray-500">No comments yet. Be the first to reply.</p>
             )}
@@ -222,13 +249,17 @@ const PostDetail = () => {
         </div>
 
         <div className="border-t border-gray-100 p-4 bg-white">
+
           {user ? (
             <form onSubmit={handleAddComment} className="flex items-end gap-3">
               <Avatar src={user.avatar} username={user.username} size="sm" />
 
               <div className="flex-1">
+
                 <div className="mb-2 flex items-center gap-2">
+
                   <span className="text-sm font-medium text-gray-900">{user.username}</span>
+
                   <span className="text-xs text-gray-400">commenting as you</span>
                 </div>
                 <textarea
@@ -239,6 +270,7 @@ const PostDetail = () => {
                   maxLength={500}
                   className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-blue-400 focus:bg-white"
                 />
+
               </div>
 
               <button
@@ -246,12 +278,15 @@ const PostDetail = () => {
                 disabled={commenting || !commentText.trim()}
                 className="h-11 px-5 rounded-2xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed"
               >
+
                 {commenting ? 'Sending...' : 'Send'}
               </button>
             </form>
           ) : (
             <div className="flex items-center justify-between gap-3">
+
               <p className="text-sm text-gray-500">Login to write a comment.</p>
+
               <button
                 type="button"
                 onClick={() => navigate('/login')}
@@ -259,9 +294,11 @@ const PostDetail = () => {
               >
                 Login
               </button>
+
             </div>
           )}
         </div>
+        
       </div>
     </div>
   )

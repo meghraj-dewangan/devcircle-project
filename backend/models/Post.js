@@ -8,11 +8,13 @@ const postSchema = new mongoose.Schema(
       sparse: true,
       index: true,
     },
+
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
+
     content: {
       type: String,
       required: [true, 'Post is required'],
@@ -23,24 +25,28 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+
     tags: {
       type: [String],
       default: [],
     },
-    // If this is a repost, store reference to original post
+    
     repostOf: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
       default: null,
     },
+    
     repostCount: {
       type: Number,
       default: 0,
     },
+
     likeCount: {
       type: Number,
       default: 0,
     },
+
     commentCount: {
       type: Number,
       default: 0,

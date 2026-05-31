@@ -7,37 +7,43 @@ const questionSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+
     title: {
       type: String,
       required: [true, 'Question title is required'],
       maxlength: [200, 'Title cannot exceed 200 characters'],
     },
+
     body: {
       type: String,
       required: [true, 'Question is required'],
     },
+
     tags: {
       type: [String],
       default: [],
     },
+
     answerCount: {
       type: Number,
       default: 0,
     },
+
     upvotes: {
       type: Number,
       default: 0,
     },
+
     downvotes: {
       type: Number,
       default: 0,
     },
-    // question has an accepted answer
+    // question has  accepted answer
     isResolved: {
       type: Boolean,
       default: false,
     },
-    // Reference to the accepted answer (null if none)
+    // Reference to the accepted answer 
     acceptedAnswer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Answer',

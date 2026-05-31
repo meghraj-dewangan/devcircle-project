@@ -28,7 +28,7 @@ const Messages = () => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex h-[calc(100vh-120px)]">
-      {/* Left Conversation list */}
+    
       <div
         className={`w-full lg:w-80 border-r border-gray-200 overflow-y-auto flex-shrink-0 ${
 

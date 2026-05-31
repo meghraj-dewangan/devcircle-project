@@ -68,10 +68,12 @@ const Profile = () => {
               )}
               <div className="flex gap-4 mt-2 text-xs text-gray-500">
                 <span>{profile.followerCount || 0} Followers</span>
+
                 <span>{profile.followingCount || 0} Following</span>
 
               </div>
             </div>
+
           </div>
 
           <div>
@@ -135,9 +137,12 @@ const Profile = () => {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-6">
+
         <div className="flex items-center justify-between mb-4">
+
           <h2 className="text-lg font-semibold text-gray-900">Posts</h2>
           <span className="text-xs text-gray-500">{profile.posts?.length || 0} posts</span>
+
         </div>
 
         {profile.posts?.length > 0 ? (
@@ -148,6 +153,7 @@ const Profile = () => {
           </div>
         ) : (
           <p className="text-sm text-gray-500">No posts yet.</p>
+          
         )}
       </div>
     </div>

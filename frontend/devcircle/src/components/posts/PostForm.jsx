@@ -7,6 +7,7 @@ import Avatar from '../shared/Avatar'
 
 const PostForm = () => {
   const dispatch = useDispatch()
+
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
 
@@ -16,6 +17,7 @@ const PostForm = () => {
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
+
   const [aiStatus, setAiStatus] = useState('')
 
   const redirectGuestToLogin = () => {
@@ -40,6 +42,7 @@ const PostForm = () => {
   }
 
   const handleGeneratePost = async () => {
+
     if (redirectGuestToLogin()) return
     if (!content.trim()) return
 
@@ -53,16 +56,19 @@ const PostForm = () => {
       setAiStatus('Generated.')
       setAiError('')
     } catch (error) {
+
       const message = error?.response?.data?.message || 'AI generation failed. Please try again.'
       setAiError(message)
       setAiStatus('')
     } finally {
+
       setAiLoading(false)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
     if (redirectGuestToLogin()) return
     if (!content.trim()) return
 
@@ -75,6 +81,7 @@ const PostForm = () => {
     const result = await dispatch(createPost(formData))
 
     if (createPost.fulfilled.match(result)) {
+
       setContent('')
       setImage(null)
       setImagePreview('')
@@ -87,15 +94,18 @@ const PostForm = () => {
   return (
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-4">
       {aiError && (
+
         <div className="mb-2 px-3 py-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-500 flex items-center justify-between">
           <span>{aiError}</span>
           <button type="button" onClick={() => setAiError('')} className="text-red-300 hover:text-red-500 ml-2">
             <i className="fa-solid fa-xmark" />
+
           </button>
         </div>
       )}
 
       {aiStatus && (
+
         <p className="mb-2 text-xs text-blue-600">{aiStatus}</p>
       )}
 
@@ -103,6 +113,7 @@ const PostForm = () => {
         <Avatar src={user?.avatar} username={user?.username} size="md" />
 
         <div className="flex-1">
+
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -113,6 +124,7 @@ const PostForm = () => {
           />
 
           {imagePreview && (
+
             <div className="relative mt-2 inline-block">
               <img
                 src={imagePreview}
@@ -127,16 +139,19 @@ const PostForm = () => {
               >
                 <i className="fa-solid fa-xmark text-[10px]" />
               </button>
+
             </div>
           )}
 
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
             <div className="flex items-center gap-1">
+
               <label
                 title="Add image"
                 className="cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
               >
                 <i className="fa-solid fa-image text-sm" />
+
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>
 
@@ -156,19 +171,23 @@ const PostForm = () => {
                 )}
                 Generate
               </button>
+
             </div>
 
             <div className="flex items-center gap-2">
+
               <span className="text-xs text-gray-300">{content.length}/1000</span>
               <button
                 type="submit"
                 disabled={loading || !content.trim()}
+
                 className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Posting...' : 'Post'}
               </button>
             </div>
           </div>
+          
         </div>
       </div>
     </form>

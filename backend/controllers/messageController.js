@@ -6,7 +6,7 @@ const getConversations = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Get latest messages involving current user
+   
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
     })
@@ -14,14 +14,15 @@ const getConversations = async (req, res) => {
       .populate('sender', 'username avatar')
       .populate('receiver', 'username avatar');
 
-    // Build one entry per conversation partner
+
     const conversationMap = new Map();
 
     messages.forEach((msg) => {
+
       const otherUser =
-        msg.sender._id.toString() === userId.toString()
-          ? msg.receiver
-          : msg.sender;
+        msg.sender._id.toString() === userId.toString() ? msg.receiver : msg.sender;
+        
+         
 
       const otherId = otherUser._id.toString();
 
@@ -30,6 +31,7 @@ const getConversations = async (req, res) => {
           msg.receiver._id.toString() === userId.toString() && !msg.isRead;
 
         conversationMap.set(otherId, {
+
           user: otherUser,
           lastMessage: msg.content,
           lastMessageAt: msg.createdAt,
@@ -92,6 +94,7 @@ const sendMessage = async (req, res) => {
   try {
     const receiver = await User.findById(req.params.userId);
     if (!receiver) {
+
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -102,12 +105,14 @@ const sendMessage = async (req, res) => {
     });
 
     const populated = await message.populate([
+
       { path: 'sender', select: 'username avatar' },
       { path: 'receiver', select: 'username avatar' },
     ]);
 
     res.status(201).json(populated);
   } catch (error) {
+    
     res.status(500).json({ message: 'Server error' });
   }
 };

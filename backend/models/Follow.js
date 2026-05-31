@@ -2,13 +2,13 @@ import mongoose from 'mongoose';
 
 const followSchema = new mongoose.Schema(
   {
-    // The user who is following
+   
     follower: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    // The user being followed
+    
     following: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

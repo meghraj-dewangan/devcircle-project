@@ -11,9 +11,11 @@ import Avatar from '../components/shared/Avatar'
 import ErrorMessage from '../components/shared/ErrorMessage'
 
 const EditProfile = () => {
+
   const dispatch = useDispatch()
 
   const navigate = useNavigate()
+
   const { user } = useSelector((state) => state.auth)
 
   const { loading, error } = useSelector((state) => state.users)
@@ -70,6 +72,7 @@ const EditProfile = () => {
   return (
 
     <div className="max-w-lg">
+
       <div className="bg-white border border-gray-200 rounded-xl p-6">
 
         <h2 className="text-lg font-semibold text-gray-900 mb-5">Edit Profile</h2>
@@ -91,6 +94,7 @@ const EditProfile = () => {
           <div>
 
             <label className="cursor-pointer text-sm text-blue-500 hover:underline">
+
               Change avatar
               <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
 
@@ -114,6 +118,7 @@ const EditProfile = () => {
           </div>
 
           <div>
+
             <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
 
             <input
@@ -139,9 +144,11 @@ const EditProfile = () => {
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
             />
+
           </div>
 
           <div>
+
             <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
             
             <input
@@ -153,6 +160,7 @@ const EditProfile = () => {
             />
 
           </div>
+          
           <Button type="submit" disabled={loading}>
             {loading ? 'Saving...' : 'Save changes'}
           </Button>

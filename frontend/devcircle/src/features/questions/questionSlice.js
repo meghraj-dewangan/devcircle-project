@@ -12,6 +12,7 @@ export const fetchQuestions = createAsyncThunk(
       const { data } = await axiosfetch.get(url)
 
       return { ...data, page }
+      
     } catch (error) {
 
       return rejectWithValue(error.response?.data?.message || 'Failed to load questions')

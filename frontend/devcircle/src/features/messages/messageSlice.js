@@ -47,6 +47,7 @@ export const sendMessage = createAsyncThunk(
 )
 
 const messageSlice = createSlice({
+
   name: 'messages',
   initialState: {
 
@@ -59,6 +60,7 @@ const messageSlice = createSlice({
   },
 
   reducers: {
+
     setActiveUser: (state, action) => {
 
       state.activeUserId = action.payload
@@ -67,6 +69,7 @@ const messageSlice = createSlice({
     addRealtimeMessage: (state, action) => {
 
       const msg = action.payload
+
       const senderId = msg.sender?._id || msg.sender
       
       if (senderId && state.activeUserId &&
@@ -75,6 +78,7 @@ const messageSlice = createSlice({
       }
      
       const otherUser = msg.sender
+
       if (otherUser) {
 
         const otherId = otherUser._id || otherUser
@@ -93,6 +97,7 @@ const messageSlice = createSlice({
         } else {
 
           state.conversations.unshift({
+
             user: typeof otherUser === 'object' ? otherUser : { _id: otherUser },
             lastMessage: msg.content,
             unreadCount: isActive ? 0 : 1,
@@ -103,6 +108,7 @@ const messageSlice = createSlice({
     },
 
     clearMessages: (state) => {
+
       state.messages = []
     },
     setOnlineUsers: (state, action) => {
@@ -115,6 +121,7 @@ const messageSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchConversations.pending, (state) => {
+
         state.loading = true
 
       })
@@ -127,51 +134,61 @@ const messageSlice = createSlice({
         state.loading = false
 
         state.error = action.payload
+
       })
       .addCase(fetchMessages.pending, (state) => {
         state.loading = true
+
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.loading = false
 
         state.messages = action.payload
-        // Clear unread count for opened conversation
+     
         const userId = action.meta.arg
+
         const idx = state.conversations.findIndex(
           (c) => c.user._id === userId || c.user._id?.toString() === userId
         )
         if (idx >= 0) {
           state.conversations[idx].unreadCount = 0
         }
+
       })
       .addCase(fetchMessages.rejected, (state, action) => {
 
         state.loading = false
         state.error = action.payload
+
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         state.messages.push(action.payload)
-        // Update or add conversation entry
+      
         const msg = action.payload
 
         const otherUser = msg.receiver
 
         if (otherUser) {
+
           const idx = state.conversations.findIndex(
             (c) => c.user._id === otherUser._id || c.user._id === otherUser
+
           )
 
           if (idx >= 0) {
             state.conversations[idx].lastMessage = msg.content
           } else {
+
             state.conversations.unshift({
               user: otherUser,
               lastMessage: msg.content,
               unreadCount: 0,
+
             })
             
           }
         }
+        
       })
   },
 })

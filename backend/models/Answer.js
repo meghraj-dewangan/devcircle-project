@@ -12,18 +12,23 @@ const answerSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+
     body: {
+
       type: String,
       required: [true, 'Answer is required'],
     },
+
     upvotes: {
       type: Number,
       default: 0,
     },
+
     downvotes: {
       type: Number,
       default: 0,
     },
+    
     isAccepted: {
       type: Boolean,
       default: false,

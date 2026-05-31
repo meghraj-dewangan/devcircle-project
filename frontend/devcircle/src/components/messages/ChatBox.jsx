@@ -100,7 +100,7 @@ const ChatBox = ({ otherUser, socket }) => {
 
       </div>
 
-      {/* Input row */}
+   
       <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-200">
         <input
           type="text"

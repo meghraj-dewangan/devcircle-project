@@ -144,18 +144,20 @@ const Search = () => {
       }
 
     } catch {
+
       return
     } finally {
+
       setFollowLoading((prev) => ({ ...prev, [userId]: false }))
     }
   }
 
   const otherUsers = (results.users || []).filter((u) => u._id !== currentUser?._id)
 
-  const isEmpty =
-    !otherUsers.length &&
-    !(results.posts || []).length &&
-    !(results.questions || []).length
+  const isEmpty =!otherUsers.length && !(results.posts || []).length && !(results.questions || []).length
+    
+    
+    
 
   return (
 
@@ -169,11 +171,13 @@ const Search = () => {
           placeholder="Search users, posts, questions..."
           className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm outline-none focus:border-blue-400"
         />
+
         <button
           type="submit"
           className="bg-blue-500 text-white text-sm px-5 py-2 rounded-lg hover:bg-blue-600"
         >
           Search
+
         </button>
       </form>
 
@@ -193,6 +197,7 @@ const Search = () => {
             {t.charAt(0).toUpperCase() + t.slice(1)}
 
           </button>
+
         ))}
       </div>
 
@@ -209,6 +214,7 @@ const Search = () => {
                 <i className="fa-solid fa-users mr-2 text-gray-400" />
                 Users
               </h3>
+
               <div className="flex flex-col gap-2">
 
                 {otherUsers.map((u) => (
@@ -220,6 +226,7 @@ const Search = () => {
                     <Avatar src={u.avatar} username={u.username} size="md" />
 
                     <div className="flex-1 min-w-0">
+
                       <p className="text-sm font-medium text-gray-900">{u.username}</p>
                       {u.bio && <p className="text-xs text-gray-500 line-clamp-1">{u.bio}</p>}
 
@@ -234,6 +241,7 @@ const Search = () => {
                             : 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600'
                         } disabled:opacity-50`}
                       >
+
                         {followLoading[u._id]
                           ? '...'
                           : followMap[u._id]
@@ -252,6 +260,7 @@ const Search = () => {
           {/* Posts section */}
           {(type === 'all' || type === 'posts') && (results.posts || []).length > 0 && (
             <div>
+
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
 
                 <i className="fa-solid fa-file-lines mr-2 text-gray-400" />
@@ -284,9 +293,11 @@ const Search = () => {
                         />
                       )}
                     </div>
+
                   </div>
                 ))}
               </div>
+
             </div>
           )}
 
@@ -313,6 +324,7 @@ const Search = () => {
                       <p className="text-xs font-medium text-gray-800 mb-1">{q.author?.username}</p>
                       <p className="text-sm font-medium text-gray-900 line-clamp-1">{q.title}</p>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+
                         {q.tags?.slice(0, 3).map((tag) => (
                           <span key={tag} className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">
                             #{tag}
@@ -324,6 +336,7 @@ const Search = () => {
                           <span className="text-xs bg-green-50 text-green-600 px-1.5 py-0.5 rounded">
                             Solved
                           </span>
+                          
                         )}
                       </div>
                     </div>

@@ -8,20 +8,26 @@ import Button from '../shared/Button'
 import ErrorMessage from '../shared/ErrorMessage'
 
 const QuestionForm = () => {
+
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
   const [title, setTitle] = useState('')
+
   const [body, setBody] = useState('')
   const [tags, setTags] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+
   const [error, setError] = useState('')
   const [aiStatus, setAiStatus] = useState('')
+
   const [vagueWarning, setVagueWarning] = useState('')
   const [warnedKey, setWarnedKey] = useState('')
 
   const cleanText = (text) => {
+
     const trimmed = text.replace(/\s+/g, ' ').trim()
     if (!trimmed) return ''
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
@@ -32,6 +38,7 @@ const QuestionForm = () => {
     if (!cleaned) return ''
 
     const map = {
+
       mern: 'MERN',
       api: 'API',
       jwt: 'JWT',
@@ -52,6 +59,7 @@ const QuestionForm = () => {
   }
 
   const improveBodyLocally = (value) => {
+
     const cleaned = cleanText(value)
     if (!cleaned) return ''
     return cleaned.endsWith('.') ? cleaned : `${cleaned}.`
@@ -74,6 +82,7 @@ const QuestionForm = () => {
   }
 
   const localVagueCheck = (questionTitle, questionBody) => {
+
     const t = questionTitle.trim()
     const b = questionBody.trim()
 
@@ -82,7 +91,7 @@ const QuestionForm = () => {
     }
 
     if (b.length < 25) {
-      return { isVague: true, reason: 'Add a little more detail to the description.' }
+      return { isVague: true, reason: 'Add a little more detail.' }
     }
 
     const words = b
@@ -99,48 +108,61 @@ const QuestionForm = () => {
   }
 
   const handleImproveWithAI = async () => {
+
     if (!title.trim() || !body.trim()) return
     setAiLoading(true)
     setAiStatus('')
     try {
+
       const { data } = await axiosfetch.post('/ai/improve-question', { title, body })
       if (data.title) setTitle(data.title)
       if (data.body) setBody(data.body)
       setAiStatus('Improved.')
     } catch {
+
       setTitle(improveTitleLocally(title))
       setBody(improveBodyLocally(body))
       setAiStatus('Improved.')
+
     } finally {
+
       setAiLoading(false)
     }
   }
 
   const handleGenerateTags = async () => {
+
     if (!title.trim() && !body.trim()) return
     setAiLoading(true)
     setAiStatus('')
     try {
+
       const { data } = await axiosfetch.post('/ai/generate-tags', { content: `${title} ${body}` })
       const generated = Array.isArray(data.tags) ? data.tags : []
       if (generated.length > 0) {
         setTags(generated.join(', '))
         setAiStatus('Tags generated.')
+
       } else {
+
         const local = getLocalTags(title, body)
         setTags(local)
         setAiStatus('Tags suggested.')
       }
+
     } catch {
       const local = getLocalTags(title, body)
       setTags(local)
       setAiStatus('Tags suggested.')
     } finally {
+
       setAiLoading(false)
+
     }
   }
 
   const handleSubmit = async (e) => {
+
     e.preventDefault()
     setError('')
 
@@ -163,11 +185,13 @@ const QuestionForm = () => {
 
     const result = await dispatch(
       createQuestion({
+
         title,
         body,
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       })
     )
+
     setLoading(false)
 
     if (createQuestion.fulfilled.match(result)) {
@@ -180,6 +204,7 @@ const QuestionForm = () => {
   }
 
   return (
+
     <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6">
 
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Ask a Question</h2>
@@ -190,6 +215,7 @@ const QuestionForm = () => {
       )}
 
       <div className="mb-4">
+
         <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
         <input
           type="text"
@@ -199,7 +225,9 @@ const QuestionForm = () => {
             if (aiStatus) setAiStatus('')
             if (vagueWarning) setVagueWarning('')
             if (warnedKey) setWarnedKey('')
+
           }}
+
           placeholder="What is your question? Be specific."
           maxLength={200}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
@@ -207,7 +235,9 @@ const QuestionForm = () => {
       </div>
 
       <div className="mb-4">
+
         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+
         <textarea
           value={body}
           onChange={(e) => {
@@ -220,6 +250,7 @@ const QuestionForm = () => {
           rows={6}
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400 resize-none"
         />
+
       </div>
 
       <div className="mb-4">
@@ -238,6 +269,7 @@ const QuestionForm = () => {
       </div>
 
       {vagueWarning && (
+
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
           <i className="fa-solid fa-triangle-exclamation mr-1" />
           This question may be unclear: {vagueWarning}
@@ -262,6 +294,7 @@ const QuestionForm = () => {
           className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 disabled:opacity-40"
         >
           {aiLoading ? '...' : 'Suggest tags'}
+          
         </button>
 
       </div>

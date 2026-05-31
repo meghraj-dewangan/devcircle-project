@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       minlength: [3, 'Username must be at least 3 characters'],
       maxlength: [40, 'Username cannot exceed 40 characters'],
     },
+
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -18,40 +19,49 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+
     password: {
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
     },
+
     bio: {
       type: String,
       maxlength: [200, 'Bio cannot exceed 200 characters'],
       default: '',
     },
+
     avatar: {
       type: String,
       default: '',
     },
+
     skills: {
       type: [String],
       default: [],
     },
+
     githubLink: {
       type: String,
       default: '',
     },
+
     website: {
       type: String,
       default: '',
     },
+
     followerCount: {
       type: Number,
       default: 0,
     },
+
     followingCount: {
       type: Number,
       default: 0,
     },
+    
   },
   { timestamps: true }
 );
