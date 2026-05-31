@@ -581,6 +581,4 @@ curl -X POST http://localhost:5000/api/ai/suggest-answer
 - Some AI features require valid API keys in the backend `.env` file.
 
 
-## License
 
-This project is for learning and personal use. Add your preferred license here if needed.
