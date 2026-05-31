@@ -36,11 +36,13 @@ const app = express();
 
  const server = http.createServer(app);
 
+const clientUrl = (process.env.CLIENT_URL || '').replace(/\/$/, '');
+
 //socket.io setup for real time messaging
 
 const io = new Server(server,{
     cors: {
-    origin: process.env.CLIENT_URL,
+    origin: clientUrl,
     methods: ['GET', 'POST'],
   },
 });
@@ -90,7 +92,21 @@ app.use(
     })
 );
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (normalizedOrigin === clientUrl) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
